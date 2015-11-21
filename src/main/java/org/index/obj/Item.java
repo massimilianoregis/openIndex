@@ -107,6 +107,7 @@ public class Item
 		this.id=UUID.randomUUID().toString();
 		this.code=code;
 		this.name=name;
+		this.creationDate=new Date();
 		}
 	
 	public boolean isVisible()
@@ -180,7 +181,7 @@ public class Item
 		return prices;
 	}
 	public void setPrices(Map<String,Float> prices) {
-		this.prices = prices;
+		this.prices = prices;		
 	}
 	
 	
@@ -188,7 +189,7 @@ public class Item
 	public List<String> getCategories() {
 		List<String> result = new ArrayList<String>();
 		for(Category ct :this.categories)
-			result.add(ct.getName());
+			result.add(ct.getId());
 		return result;
 	}
 	

@@ -16,15 +16,27 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Component
 public class Index 
 	{	
-	public Shop getShop(String name)
+	/*shop*/
+	public List<Shop> getShops()
 		{
-		return new Shop(name);
+		return Repositories.shop.findAll();
+		}
+	public Shop getShop(String id)
+		{
+		return Repositories.shop.findOne(id);
+		}
+	public Shop addShop(Shop shop)
+		{
+		return Repositories.shop.save(shop);
+		}
+	public void deleteShop(String id)
+		{
+		Repositories.shop.delete(getShop(id));
 		}
 	
+	/*item*/
 	public void addItem(Item item)
 		{
-		//this.items.add(item);		
-		try{ System.out.println(new ObjectMapper().writeValueAsString(item));}catch (Exception e) {}
 		Repositories.item.save(item);
 		}
 	public void addWear(Wear item)
@@ -58,7 +70,7 @@ public class Index
 		}
 	public Pricing addPricing(String name)
 		{
-		Pricing pricing = new Pricing(name);
+		Pricing pricing = new Pricing(name,"");
 		Repositories.pricing.save(pricing);		
 		return pricing;
 		}
@@ -70,7 +82,7 @@ public class Index
 	
 	public Category addCategory(String name)
 		{
-		Category cat = new Category(name);
+		Category cat = new Category(name,"");
 		Repositories.category.save(cat);
 		return cat;
 		}

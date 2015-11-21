@@ -18,9 +18,11 @@ public class Pricing
 	private String shop;
 
 	public Pricing(){}
-	public Pricing(String name)
+	public Pricing(String name, String shop)
 		{
+		this.id=shop+"."+name;
 		this.name=name;
+		this.shop=shop;
 		}
 	public String getId() {
 		return id;
