@@ -6,8 +6,11 @@ import javax.persistence.PrePersist;
 
 import org.index.repository.Repositories;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 
 @Entity
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Category 
 	{
 	@Id
@@ -16,9 +19,17 @@ public class Category
 	private String shop;
 	
 	public Category(){}
-	public Category(String name)
+	public Category(Shop shop,String name)
+		{
+		if(shop.getId()==null) shop.save();
+		this.shop=shop.getId();
+		this.name=name;
+		}
+	public Category(String name,String shop)
 		{		
+		
 		this.name=name;		
+		this.shop=shop;
 		}
 	public String getId() {
 		return id;
@@ -38,10 +49,13 @@ public class Category
 		{
 		Repositories.category.delete(this.name);
 		}
-	
+	@Override
+	public String toString() {		
+		return "category:"+id+" "+name;
+		}
 	@PrePersist
 	public void prePersist()
 		{
-		this.id=this.shop+"."+this.name;
+		if(this.id==null) this.id=this.shop+"."+this.name;
 		}
 	}

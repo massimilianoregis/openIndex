@@ -1,4 +1,4 @@
-package org.index;
+package org.opencommunity.util;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -20,11 +20,11 @@ import org.springframework.stereotype.Component;
 
 import com.sun.mail.util.BASE64DecoderStream;
 
-@PropertySource({"index.properties"})
+@PropertySource({"community.properties"})
 @Component
 public class Util {
-	@Value("${index.img.root}") private String root;
-	@Value("${index.img.url}") private String url;
+	@Value("${community.img.root}") private String root;
+	@Value("${community.img.url}") private String url;
 	
 	
 	static private Util instance;
@@ -49,8 +49,6 @@ public class Util {
 		}
 	public InputStream getImage(String img,Integer w,Integer h) throws Exception
 		{
-		System.out.println(img);
-		System.out.println(new File(root,img).getAbsolutePath());
 		if(w==null && h==null) return new FileInputStream(new File(root,img));
 		
 		File rootImage = new File(root);
@@ -87,7 +85,6 @@ public class Util {
 		}
 	public String saveImage(String img, String name) throws Exception
 		{		
-		if(img==null) return null;
 		File rootImage = new File(root);		
 		if(img.startsWith("data:"))
 			{

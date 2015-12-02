@@ -1,27 +1,40 @@
 package org.index.obj;
 
+import java.util.Currency;
+import java.util.UUID;
+
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.PrePersist;
+
+import org.index.repository.Repositories;
 
 @Entity
 public class Pricing 
 	{
 	@Id
 	private String id;
-	private String name;
-	private String code;
+	private String name;	
 	private String description;
-	private String pass;	
 	private String shop;
+	
+	private String code;
+	private String pass;	
+		
+	private String currency;
 
-	public Pricing(){}
-	public Pricing(String name)
-		{
+	public Pricing(){
+		this.id=UUID.randomUUID().toString();
+	}
+	
+	public Pricing(String shop, String name, String currency)
+		{		
+		this.id=UUID.randomUUID().toString();
 		this.name=name;
+		this.shop=shop;
+		this.currency=currency;
 		}
+	
 	public String getId() {
 		return id;
 	}
@@ -58,10 +71,20 @@ public class Pricing
 	public void setShop(String shop) {
 		this.shop = shop;
 	}
+	public String getCurrency() {
+		return currency;
+	}
+	public void setCurrency(String currency) {
+		this.currency = currency;
+	}
+	
+	public void save(){
+		Repositories.pricing.save(this);
+	}
 	
 	@PrePersist
 	public void prePersist()
-		{
-		this.id=this.shop+"."+this.name;
+		{		
+		if(this.id==null) this.id=UUID.randomUUID().toString();
 		}
 	}

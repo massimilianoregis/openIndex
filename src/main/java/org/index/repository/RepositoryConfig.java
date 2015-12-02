@@ -24,7 +24,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 
 @PropertySource({"index.properties"})
-
+@Configuration
 @Component("repositoryConfig")
 @EnableJpaRepositories(
 		basePackages = "org.index",
@@ -47,7 +47,7 @@ public class RepositoryConfig {
 	
 	public DataSource dataSource() {
 		  	//System.out.println("datasource:"+servletContext.getRealPath("WEB-INF/data"));
-		  	
+		 System.out.println("datasource");
 		datasource = new DriverManagerDataSource();
         datasource.setDriverClassName(dbDriver);
         datasource.setUrl(dburl);
@@ -79,7 +79,7 @@ public class RepositoryConfig {
 //			cnf.scanPackages("*");
 //			cnf.getProperties().setProperty(org.hibernate.cfg.Environment.DIALECT, this.dbDialect);
 //			new SchemaExport(cnf).execute(false, true, false,true);	
-	        
+		System.out.println("/datasource");
 	        return datasource;
 	    }
 	  

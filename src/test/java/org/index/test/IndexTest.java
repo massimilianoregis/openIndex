@@ -1,16 +1,22 @@
 package org.index.test;
 
+import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.index.obj.Category;
 import org.index.obj.Item;
+import org.index.obj.Pricing;
+import org.index.obj.Shop;
 import org.junit.Test;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import junit.framework.Assert;
 
 
 public class IndexTest 
@@ -28,37 +34,86 @@ public class IndexTest
 			}
 		}
 
+	/**		SHOP 	**/
+	@Test
+	public void deleteShops()
+		{
+		Shop[] list =new RestTemplate().getForObject("http://localhost:8080/index/shop", Shop[].class);
+		for(Shop item:list)
+			new RestTemplate().delete("http://localhost:8080/index/shop/"+item.getId());			
+		}
+	@Test 
+	public void newShop() throws Exception
+		{
+		Shop shop=new Shop("starwars","Star wars","http://screenrant.com/wp-content/uploads/Darth-Vader-voiced-by-Arnold-Schwarzenegger.jpg");
+			
+		new RestTemplate().postForLocation("http://localhost:8080/index/shop",	shop);
+		Assert.assertEquals(true, true);
+		}
+	@Test
+	public void shopList()
+		{
+		System.err.println("----------SHOP-------------");
+		Shop[] list =new RestTemplate().getForObject("http://localhost:8080/index/shop", Shop[].class);
+		System.err.println(toJson(list));
+		}
+	
+	/**		CATEGORIE 	**/
 	@Test
 	public void addCategory()
 		{
-		
-		
-		new RestTemplate().postForLocation("http://localhost:8080/index/category",	new Category("alimentari"));
+		System.err.println("----------CATEGORIE-------------");
+		String shop =new RestTemplate().getForObject("http://localhost:8080/index/shop", Shop[].class)[0].getId();		
+		new RestTemplate().postForLocation("http://localhost:8080/index/category",	new Category("oggetti",shop));
 		}
 	@Test
-	public void addPricing()
+	public void categoryList()
 		{
-		MultiValueMap<String, Object> map = new LinkedMultiValueMap<String, Object>();
-			map.add("name", "shop");
-		new RestTemplate().postForLocation("http://localhost:8080/index/pricing",map);
-		map = new LinkedMultiValueMap<String, Object>();
-			map.add("name", "web");
-		new RestTemplate().postForLocation("http://localhost:8080/index/pricing",map);
-		map = new LinkedMultiValueMap<String, Object>();
-			map.add("name", "base");
-		new RestTemplate().postForLocation("http://localhost:8080/index/pricing",map);
+		String shop =new RestTemplate().getForObject("http://localhost:8080/index/shop", Shop[].class)[0].getId();
+		
+		Map map = new HashMap();
+			map.put("shop",shop);
+		Category[] list = new RestTemplate().getForObject("http://localhost:8080/index/category",	Category[].class);
+		System.err.println(toJson(list));
 		}
+	
+	/** PRICING **/
+	@Test
+	public void addPricing() throws Exception
+		{
+		System.err.println("----------PRICING-------------");
+		String shop =new RestTemplate().getForObject("http://localhost:8080/index/shop", Shop[].class)[0].getId();
+				
+		new RestTemplate().postForLocation("http://localhost:8080/index/pricing",new Pricing(shop,"shop","EUR"));		
+		new RestTemplate().postForLocation("http://localhost:8080/index/pricing",new Pricing(shop,"web","EUR"));		
+		new RestTemplate().postForLocation("http://localhost:8080/index/pricing",new Pricing(shop,"bse","EUR"));
+		}
+	@Test
+	public void getPricing() throws Exception
+		{
+		System.err.println("----------PRICING-------------");
+		String shop =new RestTemplate().getForObject("http://localhost:8080/index/shop", Shop[].class)[0].getId();
+				
+		new RestTemplate().postForLocation("http://localhost:8080/index/pricing",new Pricing(shop,"shop","EUR"));		
+		new RestTemplate().postForLocation("http://localhost:8080/index/pricing",new Pricing(shop,"web","EUR"));		
+		new RestTemplate().postForLocation("http://localhost:8080/index/pricing",new Pricing(shop,"base","EUR"));
+		}
+	
 	@Test
 	public void addItem()
 		{		
-		String json="{'id':'A3','code':'A3','name':'Panino','gallery':[{'img':'https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcTJQ6B8Q-uk1qQn5H3c9uQS9yZ9jaRu6iALbfdbusIp-65CLD-f'}],'categories':['alimentari'],'prices':{'shop':10,'web':10,'base':15}}".replaceAll("'", "\"");
-				System.out.println(json);
+		System.err.println("----------ITEM-------------");
+		String json="{'id':'A2','shop':'starwars','code':'SPDLSR','name':'Spada Laser','categories':['starwars.oggetti'],'prices':{'starwars.web':10.0,'starwars.base':15.0}}".replaceAll("'", "\"");				
+		System.err.println(json);
+		
+		
 		HttpHeaders headers = new HttpHeaders();
 		  		headers.setContentType(MediaType.APPLICATION_JSON);
 	  	HttpEntity<String> requestEntity = new HttpEntity<String>(json,headers);	  	
 	  	
 		new RestTemplate().postForLocation("http://localhost:8080/index/item",requestEntity);	  
 		}
+	/*
 	@Test
 	public void addWear()
 		{		
@@ -69,12 +124,30 @@ public class IndexTest
 	  	HttpEntity<String> requestEntity = new HttpEntity<String>(json,headers);	  	
 	  	
 		new RestTemplate().postForLocation("http://localhost:8080/index/wear",requestEntity);	  
-		}
+		}*/
 	@Test
 	public void getItems()
 		{
-		Item[] list =new RestTemplate().getForObject("http://localhost:8080/index/item", Item[].class);		
-		System.out.println(toJson(list));
+		String list =new RestTemplate().getForObject("http://localhost:8080/index/item", String.class);		
+		System.err.println(list);
 		}
-	
+	public static class Shop
+		{
+		private String id, name, background;
+		public Shop(String id, String name,String background)
+			{
+			this.id=id;
+			this.name=name;
+			this.background=background;
+			}
+		public String getBackground() {
+			return background;
+		}
+		public String getId() {
+			return id;
+		}
+		public String getName() {
+			return name;
+		}
+		}
 }
