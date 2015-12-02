@@ -68,12 +68,7 @@ public class Index
 		{
 		return Repositories.item.findByShopAndCategoriesId(shop, id);
 		}
-	public Pricing addPricing(String name)
-		{
-		Pricing pricing = new Pricing(name,"");
-		Repositories.pricing.save(pricing);		
-		return pricing;
-		}
+	
 	public Pricing addPricing(Pricing cat)
 		{			
 		Repositories.pricing.save(cat);

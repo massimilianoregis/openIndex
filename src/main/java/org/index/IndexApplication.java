@@ -4,7 +4,6 @@ package org.index;
 import java.awt.Desktop;
 import java.net.URI;
 
-import org.aspectj.tools.ajbrowser.core.BrowserBuildProgressMonitor;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration;
@@ -16,12 +15,13 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.context.annotation.FilterType;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 
 @Configuration
 
-@ComponentScan(basePackages="org.index")
+@ComponentScan(basePackages="org.index",includeFilters=@ComponentScan.Filter(value= org.index.filter.AllowOriginFilter.class, type=FilterType.ASSIGNABLE_TYPE))
 @EnableAutoConfiguration(exclude = JpaRepositoriesAutoConfiguration.class)
 //@EnableAspectJAutoProxy
 //@EnableJpaRepositories(basePackages="org.index")

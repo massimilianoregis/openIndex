@@ -43,9 +43,11 @@ public class IndexTest
 			new RestTemplate().delete("http://localhost:8080/index/shop/"+item.getId());			
 		}
 	@Test 
-	public void newShop()
+	public void newShop() throws Exception
 		{
-		new RestTemplate().postForLocation("http://localhost:8080/index/shop",	new Shop("starwars","Star wars"));
+		Shop shop=new Shop("starwars","Star wars","http://screenrant.com/wp-content/uploads/Darth-Vader-voiced-by-Arnold-Schwarzenegger.jpg");
+			
+		new RestTemplate().postForLocation("http://localhost:8080/index/shop",	shop);
 		Assert.assertEquals(true, true);
 		}
 	@Test
@@ -82,9 +84,9 @@ public class IndexTest
 		System.err.println("----------PRICING-------------");
 		String shop =new RestTemplate().getForObject("http://localhost:8080/index/shop", Shop[].class)[0].getId();
 				
-		new RestTemplate().postForLocation("http://localhost:8080/index/pricing",new Pricing("shop",shop));		
-		new RestTemplate().postForLocation("http://localhost:8080/index/pricing",new Pricing("web",shop));		
-		new RestTemplate().postForLocation("http://localhost:8080/index/pricing",new Pricing("bse",shop));
+		new RestTemplate().postForLocation("http://localhost:8080/index/pricing",new Pricing(shop,"shop","EUR"));		
+		new RestTemplate().postForLocation("http://localhost:8080/index/pricing",new Pricing(shop,"web","EUR"));		
+		new RestTemplate().postForLocation("http://localhost:8080/index/pricing",new Pricing(shop,"bse","EUR"));
 		}
 	@Test
 	public void getPricing() throws Exception
@@ -92,9 +94,9 @@ public class IndexTest
 		System.err.println("----------PRICING-------------");
 		String shop =new RestTemplate().getForObject("http://localhost:8080/index/shop", Shop[].class)[0].getId();
 				
-		new RestTemplate().postForLocation("http://localhost:8080/index/pricing",new Pricing("shop",shop));		
-		new RestTemplate().postForLocation("http://localhost:8080/index/pricing",new Pricing("web",shop));		
-		new RestTemplate().postForLocation("http://localhost:8080/index/pricing",new Pricing("base",shop));
+		new RestTemplate().postForLocation("http://localhost:8080/index/pricing",new Pricing(shop,"shop","EUR"));		
+		new RestTemplate().postForLocation("http://localhost:8080/index/pricing",new Pricing(shop,"web","EUR"));		
+		new RestTemplate().postForLocation("http://localhost:8080/index/pricing",new Pricing(shop,"base","EUR"));
 		}
 	
 	@Test
@@ -129,5 +131,23 @@ public class IndexTest
 		String list =new RestTemplate().getForObject("http://localhost:8080/index/item", String.class);		
 		System.err.println(list);
 		}
-	
+	public static class Shop
+		{
+		private String id, name, background;
+		public Shop(String id, String name,String background)
+			{
+			this.id=id;
+			this.name=name;
+			this.background=background;
+			}
+		public String getBackground() {
+			return background;
+		}
+		public String getId() {
+			return id;
+		}
+		public String getName() {
+			return name;
+		}
+		}
 }

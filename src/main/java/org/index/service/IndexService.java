@@ -1,7 +1,9 @@
 package org.index.service;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.collections.functors.PredicateTransformer;
 import org.apache.commons.io.IOUtils;
 import org.index.Index;
 import org.index.Util;
@@ -12,7 +14,6 @@ import org.index.obj.Pricing;
 import org.index.obj.Shop;
 import org.index.obj.Wear;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -37,12 +38,12 @@ public class IndexService
 	
 	/**Immagini dei prodotti**/
 	@RequestMapping(value="/image/{name:.+}",method=RequestMethod.GET)
-	public ResponseEntity<byte[]> getImage(@PathVariable String name) throws Exception
+	public ResponseEntity<byte[]> getImage(@PathVariable String name,@RequestParam(required=false) Integer w,@RequestParam(required=false) Integer h) throws Exception
 		{
 		final HttpHeaders headers = new HttpHeaders();
-	    headers.setContentType(MediaType.IMAGE_PNG);
+	    headers.setContentType(MediaType.IMAGE_JPEG);
 
-	    return new ResponseEntity<byte[]>(IOUtils.toByteArray(Util.getInstance().getImage(name)), headers, HttpStatus.CREATED);
+	    return new ResponseEntity<byte[]>(IOUtils.toByteArray(Util.getInstance().getImage(name,w,h)), headers, HttpStatus.CREATED);
 		}
 	
 	
@@ -92,10 +93,9 @@ public class IndexService
 		}
 	
 	/**Gruppi**/
-	@RequestMapping(value="/category",method=RequestMethod.POST)
+	@RequestMapping(value={"/category","/category/{id}"},method=RequestMethod.POST)
 	public @ResponseBody void addCategory(@RequestBody Category group) throws Exception
 		{		
-		System.out.println("add category "+group);
 		index.addCategory(group);
 		}
 	@RequestMapping(value="/category",method=RequestMethod.GET)
@@ -116,6 +116,23 @@ public class IndexService
 		}
 	
 	/**Negozi**/
+	@RequestMapping(value="/shop/test",method=RequestMethod.GET)
+	public @ResponseBody Shop newShop() throws Exception
+		{						
+		Shop shop = new Shop("Star wars");		
+			shop.setCurrencies("USD","EUR");
+			shop.addCategories("Oggetti","Quadri");						
+			shop.save();
+		Item item = shop.newItem();				
+			item.setName("Spada Laser");
+			item.setCategories("Oggetti");			
+			item.setPrices(new Item.Price(shop.getId(),"base","EUR",100D),
+							new Item.Price(shop.getId(),"base","USD",100D),
+							new Item.Price(shop.getId(),"web","EUR",80D));
+			item.save();
+			System.err.println(item.getPrices());
+		return shop;
+		}
 	@RequestMapping(value="/shop",method=RequestMethod.GET)
 	public @ResponseBody List<Shop> getShops() throws Exception
 		{				
@@ -126,12 +143,12 @@ public class IndexService
 		{				
 		return index.getShop(shop);
 		}
-	@RequestMapping(value="/shop",method=RequestMethod.POST)
-	public @ResponseBody void addShop(@RequestBody(required=false) Shop shop, String name) throws Exception
+	@RequestMapping(value={"/shop","/shop/{id}"},method=RequestMethod.POST)
+	public @ResponseBody Shop addShop(@RequestBody(required=false) Shop shop,@RequestParam(required=false) String name) throws Exception
 		{
 		if(shop==null) shop=new Shop(name);
-		if(shop==null && name==null) return;
-		index.addShop(shop);
+		if(shop==null && name==null) return null;
+		return index.addShop(shop);
 		}
 	@RequestMapping(value="/shop/{shop}",method=RequestMethod.DELETE)
 	public @ResponseBody void deleteShop(@PathVariable String shop) throws Exception

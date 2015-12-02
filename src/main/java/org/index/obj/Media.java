@@ -14,9 +14,11 @@ import javax.persistence.Id;
 import org.index.Util;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.sun.mail.util.BASE64DecoderStream;
 
 @Entity
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Media 
 	{
 	@Id

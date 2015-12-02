@@ -14,6 +14,7 @@ public interface CategoryRepository extends Repository<Category, String>
 	public List<Category> findAll();
 	public Category save(Category category);
 	public Category findOne(String cat);
+	public Category findByShopAndName(String shop, String cat);
 	public void delete(String entity);
 	public boolean exists(String entity);
 }

@@ -5,11 +5,10 @@ import java.util.List;
 import java.util.UUID;
 
 import javax.persistence.ElementCollection;
+import javax.persistence.Embedded;
+import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
-import javax.persistence.Transient;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
 
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
@@ -19,30 +18,46 @@ import org.index.Util;
 import org.index.repository.Repositories;
 import org.opencommunity.objs.User;
 import org.opencommunity.security.AccessControl;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Shop {
-	private @Id String id;
+	
+	@Id 
+	private String id;
 	private String name;
 	private String background;
 	private String logo;
+	private String tel;
+	private String email;
+	private String description;
+	
 	@OneToMany
 	@ElementCollection
 	@Cascade(value={CascadeType.ALL})
 	@LazyCollection(LazyCollectionOption.FALSE)	
-	private List<Media> gallery=new ArrayList<Media>();
-	private String description;
+	private List<Media> gallery=new ArrayList<Media>();	
 	
-	@Transient
-	@Autowired
-	private Util util;
+	@OneToMany
+	@ElementCollection	
+	@LazyCollection(LazyCollectionOption.FALSE)	
+	private List<Pricing> pricings = new ArrayList<Pricing>();
 	
+	@OneToMany
+	@ElementCollection	
+	@LazyCollection(LazyCollectionOption.FALSE)	
+	private List<Category> categories = new ArrayList<Category>();
 	
-	public Shop(){}
+	@Embedded
+	private Address address;
+	
+	public Shop()
+		{
+		this.id=UUID.randomUUID().toString();
+		}
 	public Shop(String id, String name){
 		this.name=name;
 		this.id=id;
@@ -52,7 +67,7 @@ public class Shop {
 		this.id=UUID.randomUUID().toString();
 	}
 	
-	public String getId() {
+	public String getId() {		
 		return id;
 	}
 	public String getName() {
@@ -70,30 +85,57 @@ public class Shop {
 	public void setId(String id) {
 		this.id = id;
 	}
-	public void setBackground(String background) throws Exception{
-		this.background = util.saveImage(background);
+	public void setBackground(String background) throws Exception	{
+		this.background = Util.getInstance().saveImage(background);
 	}
 	public void setLogo(String logo) throws Exception{
-		this.logo = util.saveImage(logo);
+		this.logo = Util.getInstance().saveImage(logo);
 	}
 	
-	@JsonIgnore
-	public List<Pricing> getPricings(){
-		return Repositories.pricing.findByShop(id);
+	/*CURRENCY*/
+	public void setCurrencies(String ... currencies){
+		for(String item:currencies){
+			addPricing("base", item);
+			addPricing("web", item);
+		}
 	}
-	@JsonIgnore
+
+	public void addPricing(String name, String currency){
+		if(id==null) save();
+		this.pricings.add(new Pricing(id, name, currency));
+	}
+	//@JsonIgnore
+	public List<Pricing> getPricings(){
+		return this.pricings;
+	}	
+	//@JsonIgnore
 	public List<Catalogue> getCatalogues(){
 		return Repositories.catalogue.findByShop(id);
 	}
-	@JsonIgnore
+	public void addCategories(String ... cats){		
+		for(String item:cats)			
+			categories.add(new Category(this,item));
+	}
+	//@JsonIgnore
 	public List<Category> getCategories(){
-		return Repositories.category.findByShop(id);
+		return categories;
 	}
 	@JsonIgnore
 	public List<Item> getItems(){
 		return Repositories.item.findByShop(id);
 	}
-		
+	public String getTel() {
+		return tel;
+	}
+	public void setTel(String tel) {
+		this.tel = tel;
+	}
+	public String getEmail() {
+		return email;
+	}
+	public void setEmail(String email) {
+		this.email = email;
+	}
 	public List<Item> getItems(String catalogue){		
 		//if(!Repositories.catalogue.findOne(catalogue).isRestrict())
 		//	return Repositories.item.findByShopAndCataloguesId(this.name,catalogue);
@@ -105,6 +147,18 @@ public class Shop {
 		if(!list.contains(catalogue)) return new ArrayList<Item>();		
 		return Repositories.item.findByShopAndCataloguesId(this.id,catalogue);
 	}
+	public Item newItem(){
+		return new Item(this);
+	}
+	
+	
+	public Address getAddress() {
+		return address;
+	}
+	public void setAddress(Address address) {
+		this.address = address;
+	}
+	
 	
 	public void save(Pricing pr){
 		Repositories.pricing.save(pr);
@@ -114,5 +168,10 @@ public class Shop {
 	}
 	public void save(Item item){
 		Repositories.item.save(item);
+	}
+		
+	public void save(){
+		if(this.id==null) this.id=UUID.randomUUID().toString();
+		Repositories.shop.save(this).getId();
 	}
 	}
