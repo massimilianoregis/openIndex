@@ -12,6 +12,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+import javax.persistence.PrePersist;
 
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
@@ -22,6 +23,7 @@ import org.index.news.News;
 import org.index.repository.Repositories;
 import org.opencommunity.objs.User;
 import org.opencommunity.security.AccessControl;
+import org.opencommunity.util.AutomaticPassword;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -44,6 +46,7 @@ public class Shop {
 	private String twitter;
 	private String linkedin;
 	
+	//friendlycode
 	private String code;
 	
 	@Embedded
@@ -87,18 +90,23 @@ public class Shop {
 	
 	
 	public Shop()
-		{
-		this.id=UUID.randomUUID().toString();
+		{		
+		init();
 		}
 	public Shop(String id, String name){
 		this.name=name;
 		this.id=id;
+		init();
 	}
 	public Shop(String name){
 		this.name=name;
-		this.id=UUID.randomUUID().toString();
+		init();
 	}
 	
+	private void init(){
+		if(this.code==null) this.code= new AutomaticPassword().newPassword(8).toUpperCase();
+		if(this.id==null) this.id=UUID.randomUUID().toString();
+	}
 	public String getId() {		
 		return id;
 	}
@@ -174,7 +182,14 @@ public class Shop {
 		return shipping;
 	}
 	
+	public String getCode() {
+		return code;
+	}
 	
+	
+	public void setCode(String code) {
+		this.code = code;
+	}
 	public void setName(String name) {
 		this.name = name;
 	}
@@ -273,7 +288,7 @@ public class Shop {
 		whoAreWe.setTitle("Who are we");
 		this.whoAreWe = whoAreWe;		
 	}
-	
+		
 	public void save(Pricing pr){
 		Repositories.pricing.save(pr);
 	}
@@ -284,8 +299,9 @@ public class Shop {
 		Repositories.item.save(item);
 	}
 		
-	public void save(){
-		if(this.id==null) this.id=UUID.randomUUID().toString();
-		Repositories.shop.save(this);
+	public void save(){				
+		
+		Repositories.shop.save(this);		
 	}
+	
 	}
