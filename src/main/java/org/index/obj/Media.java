@@ -27,18 +27,34 @@ public class Media
 	private Long uid;
 	@Column(columnDefinition="TEXT")
 	private String img;
+	
+	public Media() {
+	
+	}
+	public Media(String img){
+		this.img=img;
+	}
 	public Long getUid() {
 		return uid;
 	}
 	public void setUid(Long uid) {
 		this.uid = uid;
 	}
+	public String getSrc() {
+		return img;
+	}
 	public String getImg() {
 		return img;
 	}
+	public void setSrc(String img) throws Exception 
+	{
+	
+	this.img = Util.getInstance().saveImage(img);
+	
+	}
 	public void setImg(String img) throws Exception 
 		{
-		System.out.println(img);
+		
 		this.img = Util.getInstance().saveImage(img);
 		
 		}

@@ -78,8 +78,8 @@ public class Pricing
 		this.currency = currency;
 	}
 	
-	public void save(){
-		Repositories.pricing.save(this);
+	public Pricing save(){
+		return Repositories.pricing.save(this);
 	}
 	
 	@PrePersist

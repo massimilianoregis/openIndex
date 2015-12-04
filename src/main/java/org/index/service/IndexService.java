@@ -7,6 +7,7 @@ import org.apache.commons.collections.functors.PredicateTransformer;
 import org.apache.commons.io.IOUtils;
 import org.index.Index;
 import org.index.Util;
+import org.index.news.News;
 import org.index.obj.Catalogue;
 import org.index.obj.Category;
 import org.index.obj.Item;
@@ -119,18 +120,67 @@ public class IndexService
 	@RequestMapping(value="/shop/test",method=RequestMethod.GET)
 	public @ResponseBody Shop newShop() throws Exception
 		{						
-		Shop shop = new Shop("Star wars");		
+		Shop shop = new Shop("Star wars");					
+			shop.setBackground("http://im.ziffdavisinternational.com/t/ign_it/screenshot/default/1429211669-star-wars-battlefront-key-art_hbw8.1920.jpg");			
 			shop.setCurrencies("USD","EUR");
-			shop.addCategories("Oggetti","Quadri");						
-			shop.save();
+			shop.addCategories("Oggetti","Quadri");
+		shop.save();
+		
+			
+		{
+		System.out.println("primo prodotto");
 		Item item = shop.newItem();				
 			item.setName("Spada Laser");
-			item.setCategories("Oggetti");			
+			item.addImage("http://www.artsfon.com/pic/201501/1366x768/artsfon.com-45936.jpg");			
+			item.setCategories("Oggetti");						
 			item.setPrices(new Item.Price(shop.getId(),"base","EUR",100D),
 							new Item.Price(shop.getId(),"base","USD",100D),
 							new Item.Price(shop.getId(),"web","EUR",80D));
 			item.save();
-			System.err.println(item.getPrices());
+		
+		System.out.println("/primo prodotto");
+		}
+		
+		{
+		System.out.println("secondo prodotto");
+		Item item = shop.newItem();				
+			item.setName("Force Friday");
+			item.addImage("http://pixel.nymag.com/imgs/daily/vulture/2015/09/04/force-fridays/bb8.nocrop.w529.h560.png");			
+			item.setCategories("Oggetti");	
+			item.setPrices(new Item.Price(shop.getId(),"base","EUR",100D),
+							new Item.Price(shop.getId(),"base","USD",100D),
+							new Item.Price(shop.getId(),"web","EUR",80D));
+			item.save();
+		
+		System.out.println("/secondo prodotto");
+		}
+		
+		{
+		System.out.println("terzo prodotto");
+		Item item = shop.newItem();				
+			item.setName("Toast");
+			item.setCategories("Oggetti");
+			item.addImage("https://s-media-cache-ak0.pinimg.com/236x/ce/83/0b/ce830bb484e4809a8544a6760e7ae111.jpg");
+			item.setPrices(new Item.Price(shop.getId(),"base","EUR",100D),
+							new Item.Price(shop.getId(),"base","USD",100D),
+							new Item.Price(shop.getId(),"web","EUR",80D));
+		item.save();
+		System.out.println("/terzo prodotto");
+		}
+		
+		{
+		System.out.println("quarto prodotto");
+		Item item = shop.newItem();				
+			item.setName("Coffee");
+			item.setCategories("Oggetti");
+			item.addImage("http://cnet1.cbsistatic.com/hub/i/r/2012/12/07/05a1a3d0-fdc7-11e2-8c7c-d4ae52e62bcc/resize/570xauto/a20b9cea9511045cbdedaa50e63009fd/Crave27.jpg");
+			item.setPrices(new Item.Price(shop.getId(),"base","EUR",100D),
+							new Item.Price(shop.getId(),"base","USD",100D),
+							new Item.Price(shop.getId(),"web","EUR",80D));
+			item.save();
+		System.out.println("/quarto prodotto");
+		}
+			
 		return shop;
 		}
 	@RequestMapping(value="/shop",method=RequestMethod.GET)
@@ -205,4 +255,6 @@ public class IndexService
 		}
 		}
 
+	
+	
 }

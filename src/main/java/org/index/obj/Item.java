@@ -4,17 +4,21 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
@@ -80,10 +84,9 @@ public class Item
 			
 		
 	@JsonIgnore
-	@ManyToMany
-	@ElementCollection
-	@LazyCollection(LazyCollectionOption.FALSE)
-	private List<Category> categories = new ArrayList<Category>();
+	@ManyToMany(fetch=FetchType.LAZY)	
+	@Cascade(value={CascadeType.ALL})
+	private Set<Category> categories = new HashSet<Category>();
 	
 	@JsonIgnore
 	@ManyToMany
@@ -91,8 +94,7 @@ public class Item
 	private List<Catalogue> catalogues = new ArrayList<Catalogue>();
 	
 	@JsonIgnore
-	@ManyToMany
-	@LazyCollection(LazyCollectionOption.TRUE)
+	@ManyToMany(fetch=FetchType.LAZY)	
 	private List<Item> suggestItem = new ArrayList<Item>();
 	
 	
@@ -228,8 +230,12 @@ public class Item
 	public List<String> getCategories() {
 		List<String> result = new ArrayList<String>();
 		for(Category ct :this.categories)
-			result.add(ct.getId());
+			result.add(ct.getName());
 		return result;
+	}
+	
+	public void addImage(String image){
+		this.gallery.add(new Media(image));
 	}
 	
 	@JsonSetter
@@ -330,7 +336,7 @@ public class Item
 		}
 	public void save(){
 		Repositories.item.save(this);
-		System.err.println(this.categories);
+		System.err.println(this.id+"-->"+this.categories);
 	}
 	
 	@Entity
