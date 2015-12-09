@@ -1,5 +1,6 @@
 package org.index.repository;
 
+import org.index.categories.GoodClassRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -11,7 +12,8 @@ public class Repositories {
 			ItemRepository item,
 			CategoryRepository category,
 			CatalogueRepository catalogues,
-			ShopRepository shop
+			ShopRepository shop,
+			GoodClassRepository goodClass
 			)
 		{		
 		Repositories.pricing	=	pricing;		
@@ -19,6 +21,7 @@ public class Repositories {
 		Repositories.category	=	category;
 		Repositories.catalogue	= 	catalogues;
 		Repositories.shop		= 	shop;
+		Repositories.goodClass	=	goodClass;
 		}
 
 	static public PricingRepository pricing;
@@ -26,4 +29,5 @@ public class Repositories {
 	static public CategoryRepository category;
 	static public CatalogueRepository catalogue;
 	static public ShopRepository shop;
+	static public GoodClassRepository goodClass;
 }

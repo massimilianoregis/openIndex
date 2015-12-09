@@ -12,13 +12,13 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
-import javax.persistence.PrePersist;
 
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
 import org.index.Util;
+import org.index.categories.GoodClass;
 import org.index.news.News;
 import org.index.repository.Repositories;
 import org.opencommunity.objs.User;
@@ -38,6 +38,7 @@ public class Shop {
 	private String background;
 	private String logo;
 	private String description;
+	private String style;
 	
 	private String tel;	
 	private String email;
@@ -84,9 +85,16 @@ public class Shop {
 	@LazyCollection(LazyCollectionOption.FALSE)	
 	private List<News> news = new ArrayList<News>();
 	
+	@OneToMany
+	@ElementCollection	
+	@Cascade(value={CascadeType.ALL})
+	@LazyCollection(LazyCollectionOption.FALSE)	
+	private List<GoodClass> goodClasses = new ArrayList<GoodClass>();
+	
 	@OneToOne	
 	@Cascade(value={CascadeType.ALL})		
 	private Page whoAreWe;
+		
 	
 	
 	public Shop()
@@ -184,6 +192,14 @@ public class Shop {
 	
 	public String getCode() {
 		return code;
+	}
+	
+	/*good classes*/
+	public List<GoodClass> getGoodClasses() {
+		return goodClasses;
+	}
+	public void setCategories(List<Category> categories) {
+		this.categories = categories;
 	}
 	
 	

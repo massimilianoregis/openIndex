@@ -1,19 +1,21 @@
 package org.index.service;
 
-import java.util.ArrayList;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
-import org.apache.commons.collections.functors.PredicateTransformer;
 import org.apache.commons.io.IOUtils;
 import org.index.Index;
 import org.index.Util;
-import org.index.news.News;
+import org.index.categories.GoodClass;
 import org.index.obj.Catalogue;
 import org.index.obj.Category;
 import org.index.obj.Item;
 import org.index.obj.Pricing;
 import org.index.obj.Shop;
 import org.index.obj.Wear;
+import org.index.repository.Repositories;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -27,6 +29,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Controller
 @Transactional("indexTransactionManager")
@@ -115,6 +119,24 @@ public class IndexService
 		{		
 		index.getCategory(name).remove();
 		}
+	/**GoodClasses**/
+	@RequestMapping(value="/class",method=RequestMethod.GET)
+	public @ResponseBody List<GoodClass> getClasses(){
+		return Repositories.goodClass.findByParentId(null);
+		}
+	@RequestMapping(value="/class",method=RequestMethod.PUT)
+	public @ResponseBody List<GoodClass> setClasses(List<GoodClass> classes){
+		for(GoodClass item:classes)
+			Repositories.goodClass.save(item);
+		return getClasses();
+		}
+	@RequestMapping(value="/class/default",method=RequestMethod.GET)
+	public @ResponseBody List<GoodClass> setClassesDefault() throws Exception{
+		InputStream json = this.getClass().getClassLoader().getResourceAsStream("goodClasses.json");
+		GoodClass[] cls= new ObjectMapper().readValue(json, GoodClass[].class);
+		return setClasses(Arrays.asList(cls));
+		}
+	
 	
 	/**Negozi**/
 	@RequestMapping(value="/shop/test",method=RequestMethod.GET)
