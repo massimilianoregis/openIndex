@@ -1,19 +1,20 @@
 package org.index.repository;
 
 
+import java.io.IOException;
+import java.net.Inet4Address;
+import java.net.InetAddress;
 import java.sql.Statement;
 import java.util.Properties;
 
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.env.Environment;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.orm.jpa.JpaTransactionManager;
@@ -23,7 +24,7 @@ import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 
-@PropertySource({"index.properties"})
+//@PropertySource({"index.properties"})
 @Configuration
 @Component("repositoryConfig")
 @EnableJpaRepositories(
@@ -41,13 +42,30 @@ public class RepositoryConfig {
 	@Value("${index.db.dialect}") private String dbDialect;
 	@Value("${index.db.create.url}") private String createUrl;
 	@Value("${index.db.create.cmd}") private String createCmd;
-
+	@Value("${index.img.root}") private String root;
+	@Value("${index.img.url}") private String url;
 	
 	
+	 @Bean
+     public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() throws IOException {
+         PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer = new PropertySourcesPlaceholderConfigurer();
+         propertySourcesPlaceholderConfigurer.setIgnoreUnresolvablePlaceholders(Boolean.TRUE);
+         try{
+         if(InetAddress.getLocalHost().getHostAddress().equals("95.110.224.34"))
+        	 propertySourcesPlaceholderConfigurer.setLocations(new PathMatchingResourcePatternResolver().getResources("classpath*:remote/*.properties"));
+         else
+        	 propertySourcesPlaceholderConfigurer.setLocations(new PathMatchingResourcePatternResolver().getResources("classpath*:local/*.properties"));
+         }catch(Exception e)
+         {
+        	 propertySourcesPlaceholderConfigurer.setLocations(new PathMatchingResourcePatternResolver().getResources("classpath*:local/*.properties"));
+         }
+         
+         return propertySourcesPlaceholderConfigurer;
+     }
 	
 	public DataSource dataSource() {
 		  	//System.out.println("datasource:"+servletContext.getRealPath("WEB-INF/data"));
-		 System.out.println("datasource");
+		 System.out.println("datasource-->"+this.dburl);
 		datasource = new DriverManagerDataSource();
         datasource.setDriverClassName(dbDriver);
         datasource.setUrl(dburl);
@@ -151,5 +169,7 @@ public class RepositoryConfig {
     	
     }
 
-
+public static void main(String[] args) throws Exception{
+	System.out.println(InetAddress.getLocalHost().getHostAddress());
+}
 }

@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
 
 import com.sun.mail.util.BASE64DecoderStream;
 
-@PropertySource({"index.properties"})
+//@PropertySource({"index.properties"})
 @Component
 public class Util {
 	@Value("${index.img.root}") private String root;
