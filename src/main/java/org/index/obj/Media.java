@@ -31,8 +31,8 @@ public class Media
 	public Media() {
 	
 	}
-	public Media(String img){
-		this.img=img;
+	public Media(String img) throws Exception{
+		setSrc(img);
 	}
 	public Long getUid() {
 		return uid;
@@ -47,16 +47,14 @@ public class Media
 		return img;
 	}
 	public void setSrc(String img) throws Exception 
-	{
-	
-	this.img = Util.getInstance().saveImage(img);
-	
-	}
+		{			
+		System.out.println(img);
+		this.img = Util.getInstance().saveImage(img);
+		}
 	public void setImg(String img) throws Exception 
 		{
-		
-		this.img = Util.getInstance().saveImage(img);
-		
+		System.out.println(img);
+		this.img = Util.getInstance().saveImage(img);		
 		}
 	
 	}

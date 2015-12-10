@@ -18,7 +18,6 @@ import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
@@ -38,13 +37,12 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(Include.NON_NULL)
-@JsonPropertyOrder({"shop"})
 @Entity
 @Inheritance(strategy=InheritanceType.JOINED)
 public class Item 
@@ -167,6 +165,7 @@ public class Item
 		return shop;
 	}
 	public void setShop(String shop) {
+		
 		this.shop = shop;
 	}
 	public String getName() {
@@ -222,6 +221,8 @@ public class Item
 		return prices;
 	}
 	public void setPrices(Price ... prices) {		
+//		for(Price price:prices)
+//			price.setItem(this);
 		this.prices = Arrays.asList(prices);		
 	}
 	
@@ -234,7 +235,7 @@ public class Item
 		return result;
 	}
 	
-	public void addImage(String image){
+	public void addImage(String image) throws Exception{
 		this.gallery.add(new Media(image));
 	}
 	
@@ -336,10 +337,11 @@ public class Item
 		}
 	public void save(){
 		Repositories.item.save(this);
-		System.err.println(this.id+"-->"+this.categories);
+	
 	}
 	
 	@Entity
+	@JsonIgnoreProperties(ignoreUnknown=true)	
 	public static class Price
 		{
 		@Id
@@ -348,11 +350,8 @@ public class Item
 		@ManyToOne		
 		@JoinColumn
 		private Pricing pricing;
-
 		
-		@Transient private String currency;
-		@Transient private String name;
-		@Transient private String shop;
+		
 		
 		public Price() {		
 		}
@@ -384,30 +383,36 @@ public class Item
 			return pricing;
 		}
 		public String getCurrency() {
+			if(pricing==null) return null;
 			return pricing.getCurrency();
 		}
 		public String getName(){
+			if(pricing==null) return null;
 			return pricing.getName();
-		}
-		public void setCurrency(String currency){
-			this.currency=currency;
-		}
-		public void setName(String name){
-			this.name=name;
 		}
 		public Double getValue() {
 			return value;
-		}
+		}	
+		
+			
 		public void setValue(Double value) {
 			this.value = value;
 		}
 		
+		@JsonUnwrapped
+		public void setData(Data data)
+			{
+			
+			
+			this.pricing = Repositories.pricing.findByShopAndNameAndCurrency(data.getShop(), data.getName(), data.getCurrency());
+			}
 		
 		@PreUpdate
 		@PrePersist
-		public void prePersist(){
+		public void prePersist(){			
 			if(id==null) id=UUID.randomUUID().toString();
-			if(this.pricing==null) this.pricing = Repositories.pricing.findByShopAndNameAndCurrency(this.shop, this.name, this.currency);
+			
+			
 		}
 		@Override
 		public String toString() {
@@ -416,4 +421,30 @@ public class Item
 		}
 		
 		}
+	
+	public static class Data{
+		private String currency;
+		private String name;
+		private String shop;
+		public String getCurrency() {
+			return currency;
+		}
+		public void setCurrency(String currency) {
+			this.currency = currency;
+		}
+		public String getName() {
+			return name;
+		}
+		public void setName(String name) {
+			this.name = name;
+		}
+		public String getShop() {
+			return shop;
+		}
+		public void setShop(String shop) {
+			this.shop = shop;
+		}
+		
+	} 
+	
 	}

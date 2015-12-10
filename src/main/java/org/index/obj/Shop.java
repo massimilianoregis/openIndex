@@ -1,6 +1,7 @@
 package org.index.obj;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -9,7 +10,10 @@ import java.util.UUID;
 import javax.persistence.ElementCollection;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
+import javax.persistence.EntityExistsException;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
+import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 
@@ -64,8 +68,9 @@ public class Shop {
 	private List<Media> gallery=new ArrayList<Media>();	
 	
 	@OneToMany
-	@ElementCollection	
-	@LazyCollection(LazyCollectionOption.FALSE)	
+	@ElementCollection
+	@Cascade(value={CascadeType.ALL})
+	@LazyCollection(LazyCollectionOption.FALSE)		
 	private List<Pricing> pricings = new ArrayList<Pricing>();
 	
 	@OneToMany
@@ -75,7 +80,8 @@ public class Shop {
 	private List<Shipping> shipping=new ArrayList<Shipping>();	
 	
 	@OneToMany
-	@ElementCollection	
+	@ElementCollection
+	@Cascade(value={CascadeType.ALL})
 	@LazyCollection(LazyCollectionOption.FALSE)	
 	private List<Category> categories = new ArrayList<Category>();
 	
@@ -84,11 +90,9 @@ public class Shop {
 	@Cascade(value={CascadeType.ALL})
 	@LazyCollection(LazyCollectionOption.FALSE)	
 	private List<News> news = new ArrayList<News>();
-	
-	@OneToMany
-	@ElementCollection	
+		
+	@ManyToMany(fetch=FetchType.LAZY)	
 	@Cascade(value={CascadeType.ALL})
-	@LazyCollection(LazyCollectionOption.FALSE)	
 	private List<GoodClass> goodClasses = new ArrayList<GoodClass>();
 	
 	@OneToOne	
@@ -193,6 +197,10 @@ public class Shop {
 	public String getCode() {
 		return code;
 	}
+	public String getStyle() {
+		return style;
+	}
+	
 	
 	/*good classes*/
 	public List<GoodClass> getGoodClasses() {
@@ -218,6 +226,10 @@ public class Shop {
 	public void setLogo(String logo) throws Exception{
 		this.logo = Util.getInstance().saveImage(logo);
 	}
+	
+	public void setGallery(List<Media> gallery) {
+		this.gallery = gallery;
+	}
 	public void setLegalData(LegalData legalData) {
 		if(legalData==null) return;
 		this.legalData = legalData;		
@@ -225,12 +237,16 @@ public class Shop {
 	}
 	/*CURRENCY*/
 	public void setCurrencies(String ... currencies){
-		List<Pricing> pr = new ArrayList<Pricing>();
+		if(currencies==null) return;
+		
+		String[] currs=getCurrencies();		
 		for(String item:currencies){
-			pr.add(new Pricing(getId(),"base", item).save());
-			pr.add(new Pricing(getId(),"web", item).save());
-		}
-		this.pricings=pr;
+			if(Arrays.binarySearch(currs, item)<0)	{
+			pricings.add(new Pricing(getId(),"base", item).save());
+			pricings.add(new Pricing(getId(),"web", item).save());
+			}
+		}		
+		
 	}
 
 	public void addPricing(String name, String currency){
@@ -238,6 +254,15 @@ public class Shop {
 		this.pricings.add(new Pricing(id, name, currency));		
 	}
 	
+	public void addCategory(Category cat){
+		for(Category item:this.categories)
+			if(item.getId().equals(cat.getId()))
+				{
+				item.setName(cat.getName());
+				return;
+				}
+		categories.add(cat);		
+	}
 	public void addCategories(String ... cats){		
 		List<Category> pr = new ArrayList<Category>();
 		for(String item:cats){
@@ -286,6 +311,12 @@ public class Shop {
 		this.shipping = shipping;
 		
 	}
+	public void setPricings(List<Pricing> pricings) {		
+		for(Pricing item:pricings)			
+			item.setShop(this.getId());
+			
+		this.pricings = pricings;
+	}
 	public void setAddress(Address address) {
 		this.address = address;
 	}
@@ -304,10 +335,10 @@ public class Shop {
 		whoAreWe.setTitle("Who are we");
 		this.whoAreWe = whoAreWe;		
 	}
-		
-	public void save(Pricing pr){
-		Repositories.pricing.save(pr);
+	public void setStyle(String style) {
+		this.style = style;
 	}
+	
 	public void save(Category cat){
 		Repositories.category.save(cat);
 	}

@@ -9,6 +9,8 @@ import javax.persistence.PrePersist;
 
 import org.index.repository.Repositories;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 public class Pricing 
 	{
@@ -16,6 +18,7 @@ public class Pricing
 	private String id;
 	private String name;	
 	private String description;
+	//@JsonIgnore
 	private String shop;
 	
 	private String code;
@@ -82,9 +85,4 @@ public class Pricing
 		return Repositories.pricing.save(this);
 	}
 	
-	@PrePersist
-	public void prePersist()
-		{		
-		if(this.id==null) this.id=UUID.randomUUID().toString();
-		}
 	}

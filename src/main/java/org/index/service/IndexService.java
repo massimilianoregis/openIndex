@@ -101,7 +101,7 @@ public class IndexService
 	@RequestMapping(value={"/category","/category/{id}"},method=RequestMethod.POST)
 	public @ResponseBody void addCategory(@RequestBody Category group) throws Exception
 		{		
-		index.addCategory(group);
+		index.getShop(group.getShop()).addCategory(group);
 		}
 	@RequestMapping(value="/category",method=RequestMethod.GET)
 	public @ResponseBody List<Category> getCategories(@RequestParam(required=false) String shop) throws Exception
