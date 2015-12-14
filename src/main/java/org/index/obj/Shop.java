@@ -57,6 +57,9 @@ public class Shop {
 	@Embedded
 	private Address address;
 	
+	@Embedded
+	private Gps gps;
+	
 	@OneToOne
 	@Cascade(value={CascadeType.ALL})
 	private LegalData legalData;
@@ -199,6 +202,14 @@ public class Shop {
 	}
 	public String getStyle() {
 		return style;
+	}
+	
+	/*gps*/
+	public Gps getGps() {
+		return gps;
+	}
+	public void setGps(Gps gps) {
+		this.gps = gps;
 	}
 	
 	
