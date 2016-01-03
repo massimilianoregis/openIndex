@@ -13,7 +13,8 @@ public class Repositories {
 			CategoryRepository category,
 			CatalogueRepository catalogues,
 			ShopRepository shop,
-			GoodClassRepository goodClass
+			GoodClassRepository goodClass,
+			StaffRepository staff
 			)
 		{		
 		Repositories.pricing	=	pricing;		
@@ -22,6 +23,7 @@ public class Repositories {
 		Repositories.catalogue	= 	catalogues;
 		Repositories.shop		= 	shop;
 		Repositories.goodClass	=	goodClass;
+		Repositories.staff		=	staff;
 		}
 
 	static public PricingRepository pricing;
@@ -30,4 +32,5 @@ public class Repositories {
 	static public CatalogueRepository catalogue;
 	static public ShopRepository shop;
 	static public GoodClassRepository goodClass;
+	static public StaffRepository staff;
 }

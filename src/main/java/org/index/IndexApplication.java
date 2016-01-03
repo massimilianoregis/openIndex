@@ -3,6 +3,7 @@ package org.index;
 
 import java.awt.Desktop;
 import java.net.URI;
+import java.text.SimpleDateFormat;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -16,7 +17,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 
 @Configuration
@@ -38,6 +38,7 @@ public class IndexApplication extends SpringBootServletInitializer
     public CacheManager cacheManager() {
         return new ConcurrentMapCacheManager("item");
     }
+	
     public static void main(String[] args) throws Exception{
     //	System.setProperty("spring.profiles.default", System.getProperty("spring.profiles.default", "dev"));
         ConfigurableApplicationContext ctx =SpringApplication.run(IndexApplication.class, args);

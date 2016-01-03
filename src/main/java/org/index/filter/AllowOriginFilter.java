@@ -25,6 +25,7 @@ public class AllowOriginFilter implements Filter {
 		response.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
 		
 		System.out.println("Index>"+((HttpServletRequest)req).getRequestURI()+"<");
+		System.out.println("Index>"+((HttpServletRequest)req).getQueryString()+"<");
 		chain.doFilter(req, res);
 	}
 

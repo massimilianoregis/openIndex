@@ -32,6 +32,14 @@ public class Util {
 		{
 		return instance;
 		}
+	
+	public Util(){}
+	public Util(String root, String url)
+		{
+		this.root=root;
+		this.url=url;
+		init();
+		}
 	@PostConstruct
 	public void init()
 		{				
@@ -59,26 +67,27 @@ public class Util {
 			
 		BufferedImage image = ImageIO.read(new File(root,img));
 		Integer nh = image.getHeight();
-		Integer nw = image.getWidth();
+		Integer nw = image.getWidth();		
+		
 		if( ((h!=null && nh==h)||h==null) && ((w!=null && nw==w)||w==null))
 			{
 			ImageIO.write(image, imgtype, imgOutFile);
 			return new FileInputStream(imgOutFile);
 			}
-		
-		Mode mode = Mode.FIT_TO_WIDTH;
+		float ratio = nw/(float)nh;		
+		Mode mode = Mode.FIT_TO_WIDTH;		
 		
 		Integer w1 = w;
-		Integer h1 = w/nw*h;
+		Integer h1 = (int)(w/ratio);
 		
-		Integer w2 = h/nh*w;
+		Integer w2 = (int)(h*ratio);
 		Integer h2 = h;
 		
 		if(w1>=w && h1>=h) mode= Mode.FIT_TO_WIDTH;
-		if(w2>=w && h2>=h) mode= Mode.FIT_TO_HEIGHT;
+		if(w2>=w && h2>=h) mode= Mode.FIT_TO_HEIGHT;	
 		
 		BufferedImage resize = resize(image,  Method.BALANCED, mode,w!=null?w:0,h!=null?h:0,OP_ANTIALIAS);		
-		if(w!=null && h!=null)  resize= crop(resize,w,h);
+		if(w!=null && h!=null)  resize= crop(resize,(resize.getWidth()-w)/2,(resize.getHeight()-h)/2,w,h);
 		
 		ImageIO.write(resize, imgtype, imgOutFile);	
 		return new FileInputStream(imgOutFile);
@@ -105,16 +114,12 @@ public class Util {
 			}
 		if(!img.matches(url))
 			try{					
-			System.out.println("download:"+img);
+			System.out.println("download:"+img);			
 			URL ur = new URL(img);
 			InputStream in = ur.openStream();
 			
-			if(name==null)	
-				{
-				name = ur.getFile();
-				String[] path = name.split("/");
-				name = path[path.length-1];
-				}
+			if(name==null)								
+				name = UUID.randomUUID().toString()+".jpg";				
 				
 			//String imgtype = name.split("\\.")[1];
 			
@@ -122,8 +127,14 @@ public class Util {
 				imgOutFile.getParentFile().mkdirs();
 				imgOutFile.createNewFile();
 			FileOutputStream out = new FileOutputStream(imgOutFile);
-			IOUtils.copy(in, out);
+			int size = IOUtils.copy(in, out);
+			
 			System.out.println("...download:"+url+imgOutFile.getName());
+			if(size==0)
+				{
+				imgOutFile.delete();
+				return url;
+				}
 			return url+imgOutFile.getName();
 			}catch (Exception e) {
 				e.printStackTrace();
@@ -132,6 +143,10 @@ public class Util {
 		}
 	
 	public static void main(String[] args)throws Exception {
-		System.out.println(new URL("https://img.scalaplayhouse.com/products/3002454055/3002454055_136x192.jpg").getPath());
+		Util util = new Util("/Users/max/Downloads","http://");
+		//String path = util.saveImage("/Users/max/Downloads/14010_Druckbogen_Muppets_RocknRoll_m.jpg",null);
+		//System.out.println(path);
+		System.out.println(util.saveImage("http://graph.facebook.com/517267866/picture?type=large"));
+		
 	}
 }

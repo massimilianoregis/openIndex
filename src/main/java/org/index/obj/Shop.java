@@ -2,6 +2,7 @@ package org.index.obj;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -10,7 +11,6 @@ import java.util.UUID;
 import javax.persistence.ElementCollection;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
-import javax.persistence.EntityExistsException;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
@@ -25,23 +25,32 @@ import org.index.Util;
 import org.index.categories.GoodClass;
 import org.index.news.News;
 import org.index.repository.Repositories;
+import org.index.service.IndexService.View;
+import org.opencommunity.client.OpenCommunity;
 import org.opencommunity.objs.User;
 import org.opencommunity.security.AccessControl;
 import org.opencommunity.util.AutomaticPassword;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonView;
 
 @Entity
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Shop {
 	
-	@Id 
-	private String id;
+	@Id
+	@JsonView(View.Shop.Base.class)
+	private String id;	
+	@JsonView(View.Shop.Base.class)
 	private String name;
+	@JsonView(View.Shop.Base.class)
 	private String background;
+	@JsonView(View.Shop.Base.class)
 	private String logo;
+	@JsonView(View.Shop.Base.class)
 	private String description;
+	@JsonView(View.Shop.Base.class)
 	private String style;
 	
 	private String tel;	
@@ -67,7 +76,7 @@ public class Shop {
 	@OneToMany
 	@ElementCollection
 	@Cascade(value={CascadeType.ALL})
-	@LazyCollection(LazyCollectionOption.FALSE)	
+	@LazyCollection(LazyCollectionOption.FALSE)		
 	private List<Media> gallery=new ArrayList<Media>();	
 	
 	@OneToMany
@@ -101,6 +110,10 @@ public class Shop {
 	@OneToOne	
 	@Cascade(value={CascadeType.ALL})		
 	private Page whoAreWe;
+	
+	@ManyToMany(fetch=FetchType.LAZY)
+	@Cascade(value={CascadeType.ALL})	
+	private List<Staff> staff = new ArrayList<Staff>();
 		
 	
 	
@@ -332,6 +345,40 @@ public class Shop {
 		this.address = address;
 	}
 	
+	/*STAFF*/
+	public void addStaff(String role, String mail)	{		
+		Staff staff = Repositories.staff.findOne(mail);		
+		if(staff==null)		staff = new Staff(mail,role);
+		this.staff.add(staff);
+	}
+	public List<Staff> getStaff() {
+		return staff;
+	}
+	public void setStaff(List<Staff> staff) {
+		this.staff = staff;
+	}
+	public void send(String from, String message)	{
+		List<String> users = new ArrayList<String>();
+		for(Staff user:this.staff)
+			users.add(user.getMail());
+		OpenCommunity.getInstance().addMessage(from,this.id,message);
+		HashMap map = new HashMap();
+			map.put("from", from);
+			map.put("to", this.id);
+			map.put("type", "chat.shop");
+			
+		OpenCommunity.getInstance().send("chat",message,map,users);
+	}
+	public void answer(String to, String message)	{		
+		OpenCommunity.getInstance().addMessage(this.id,to,message);
+		HashMap map = new HashMap();
+			map.put("from", this.id);
+			map.put("to", to);
+			map.put("type", "chat.user");
+			
+		OpenCommunity.getInstance().send("chat",message,map,to);
+	}
+	
 	/*NEWS*/
 	public void addNews(News news){
 		this.news.add(news);
@@ -350,6 +397,11 @@ public class Shop {
 		this.style = style;
 	}
 	
+	public void send(String title, String text, String link)
+		{
+		
+		}
+	
 	public void save(Category cat){
 		Repositories.category.save(cat);
 	}
@@ -361,5 +413,6 @@ public class Shop {
 		
 		Repositories.shop.save(this);		
 	}
+	
 	
 	}

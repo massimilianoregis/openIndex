@@ -2,7 +2,6 @@ package org.index.service;
 
 import java.io.InputStream;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
@@ -14,6 +13,7 @@ import org.index.obj.Category;
 import org.index.obj.Item;
 import org.index.obj.Pricing;
 import org.index.obj.Shop;
+import org.index.obj.Staff;
 import org.index.obj.Wear;
 import org.index.repository.Repositories;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,12 +30,13 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Controller
 @Transactional("indexTransactionManager")
 @RequestMapping(value="/index")
-public class IndexService 
+public class IndexService 	
 {
 	@Autowired
 	private Index index;
@@ -143,7 +144,7 @@ public class IndexService
 	public @ResponseBody Shop newShop() throws Exception
 		{						
 		Shop shop = new Shop("Star wars");					
-			shop.setBackground("http://im.ziffdavisinternational.com/t/ign_it/screenshot/default/1429211669-star-wars-battlefront-key-art_hbw8.1920.jpg");			
+			//shop.setBackground("http://im.ziffdavisinternational.com/t/ign_it/screenshot/default/1429211669-star-wars-battlefront-key-art_hbw8.1920.jpg");			
 			shop.setCurrencies("USD","EUR");
 			shop.addCategories("Oggetti","Quadri");
 		shop.save();
@@ -153,7 +154,7 @@ public class IndexService
 		System.out.println("primo prodotto");
 		Item item = shop.newItem();				
 			item.setName("Spada Laser");
-			item.addImage("http://www.artsfon.com/pic/201501/1366x768/artsfon.com-45936.jpg");			
+			//item.addImage("http://www.artsfon.com/pic/201501/1366x768/artsfon.com-45936.jpg");			
 			item.setCategories("Oggetti");						
 			item.setPrices(new Item.Price(shop.getId(),"base","EUR",100D),
 							new Item.Price(shop.getId(),"base","USD",100D),
@@ -165,9 +166,9 @@ public class IndexService
 		
 		{
 		System.out.println("secondo prodotto");
-		Item item = shop.newItem();				
+		Item item = shop.newItem();					
 			item.setName("Force Friday");
-			item.addImage("http://pixel.nymag.com/imgs/daily/vulture/2015/09/04/force-fridays/bb8.nocrop.w529.h560.png");			
+			//item.addImage("http://pixel.nymag.com/imgs/daily/vulture/2015/09/04/force-fridays/bb8.nocrop.w529.h560.png");			
 			item.setCategories("Oggetti");	
 			item.setPrices(new Item.Price(shop.getId(),"base","EUR",100D),
 							new Item.Price(shop.getId(),"base","USD",100D),
@@ -182,7 +183,7 @@ public class IndexService
 		Item item = shop.newItem();				
 			item.setName("Toast");
 			item.setCategories("Oggetti");
-			item.addImage("https://s-media-cache-ak0.pinimg.com/236x/ce/83/0b/ce830bb484e4809a8544a6760e7ae111.jpg");
+			//item.addImage("https://s-media-cache-ak0.pinimg.com/236x/ce/83/0b/ce830bb484e4809a8544a6760e7ae111.jpg");
 			item.setPrices(new Item.Price(shop.getId(),"base","EUR",100D),
 							new Item.Price(shop.getId(),"base","USD",100D),
 							new Item.Price(shop.getId(),"web","EUR",80D));
@@ -195,7 +196,7 @@ public class IndexService
 		Item item = shop.newItem();				
 			item.setName("Coffee");
 			item.setCategories("Oggetti");
-			item.addImage("http://cnet1.cbsistatic.com/hub/i/r/2012/12/07/05a1a3d0-fdc7-11e2-8c7c-d4ae52e62bcc/resize/570xauto/a20b9cea9511045cbdedaa50e63009fd/Crave27.jpg");
+			//item.addImage("http://cnet1.cbsistatic.com/hub/i/r/2012/12/07/05a1a3d0-fdc7-11e2-8c7c-d4ae52e62bcc/resize/570xauto/a20b9cea9511045cbdedaa50e63009fd/Crave27.jpg");
 			item.setPrices(new Item.Price(shop.getId(),"base","EUR",100D),
 							new Item.Price(shop.getId(),"base","USD",100D),
 							new Item.Price(shop.getId(),"web","EUR",80D));
@@ -228,6 +229,37 @@ public class IndexService
 		index.deleteShop(shop);
 		}
 	
+	
+	@RequestMapping(value="/shop/{shop}/owner",method=RequestMethod.GET)
+	public @ResponseBody List<Staff> getOwner(@PathVariable String shop) throws Exception
+		{				
+		return index.getShop(shop).getStaff();
+		}
+	@RequestMapping(value="/shop/{shop}/owner/{mail:.*}",method=RequestMethod.GET)
+	public @ResponseBody void addOwner(@PathVariable String shop,@PathVariable String mail) throws Exception
+		{						
+		index.getShop(shop).addStaff("owner", mail);
+		}
+	
+	@JsonView(View.Shop.Base.class)
+	@RequestMapping(value="/owner/{mail:.*}",method=RequestMethod.GET)	
+	public @ResponseBody List<Shop> getOwners(@PathVariable String mail) throws Exception
+		{						
+		return Repositories.shop.findByStaffMail(mail);		
+		}
+	@RequestMapping(value="/shop/{shop}/send",method=RequestMethod.GET)
+	public @ResponseBody void send(@PathVariable String shop,String from, String message) throws Exception
+		{						
+		index.getShop(shop).send(from,message);
+		}
+	@RequestMapping(value="/shop/{shop}/answer",method=RequestMethod.GET)
+	public @ResponseBody void answer(@PathVariable String shop,String to, String message) throws Exception
+		{						
+		index.getShop(shop).answer(to,message);
+		}
+	
+	
+	
 	/**Prodotti**/
 	@RequestMapping(value="/item",method=RequestMethod.GET)
 	public @ResponseBody List<Item> getItems(@RequestParam(required=false) String shop) throws Exception
@@ -248,7 +280,7 @@ public class IndexService
 		return index.getShop(shop).getItems(catalogue);
 		}
 		
-	@RequestMapping(value="/item/{id}",method=RequestMethod.GET)
+	@RequestMapping(value="/item/{id:.*}",method=RequestMethod.GET)
 	public @ResponseBody Item getItem(@PathVariable String id) throws Exception
 		{				
 		return index.getItem(id);
@@ -278,5 +310,12 @@ public class IndexService
 		}
 
 	
-	
+	public static class View
+		{
+		public static class Shop
+			{
+			public static class Base	{}
+			} 
+		
+		}
 }
