@@ -1,18 +1,28 @@
 package org.index.obj;
 
+import java.util.UUID;
+
 import javax.persistence.Entity;
 import javax.persistence.Id;
 
-@Entity
+import org.index.service.IndexService.View;
+
+import com.fasterxml.jackson.annotation.JsonView;
+
+@Entity(name="shopstaff")
 public class Staff {
 	@Id
+	private String id;
+	@JsonView(View.Shop.Full.class)
 	private String mail;
+	@JsonView(View.Shop.Full.class)
 	private String role; 
 	
 	public Staff() {
-		// TODO Auto-generated constructor stub
+		this.id=UUID.randomUUID().toString();
 	}
 	public Staff(String mail, String role){
+		this.id=UUID.randomUUID().toString();
 		this.mail=mail;
 		this.role=role;		
 	}

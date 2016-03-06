@@ -10,10 +10,10 @@ import org.springframework.data.repository.Repository;
 
 public interface AuthorRepository extends Repository<Author, String> 
 {
-	@Cacheable("author")
+	//@Cacheable("author")
 	public List<Author> findAll();
 	public Author save(Author wsdl);
-	@Cacheable("author")
+	//@Cacheable("author")
 	public Author findOne(String mail);
 	public List<Author> findByFirstNameAndLastName(String firstName,String lastName);
 	public void delete(String entity);

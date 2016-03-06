@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.persistence.Access;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
@@ -32,15 +33,19 @@ import org.hibernate.annotations.LazyCollectionOption;
 import org.index.repository.Repositories;
 import org.opencommunity.security.AccessControl;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+@JsonPropertyOrder({"shop"})
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(Include.NON_NULL)
 @Entity
@@ -52,13 +57,15 @@ public class Item
 	private String name;
 	private String code;
 	private String url;
-	private boolean visible=true;	
+	private boolean visible=true;
 	private String shop;
 	@Column(columnDefinition="TEXT")
-	private String description;
-	
+	private String description;	
 	private Date creationDate;
-	private String state;
+	private String state;	
+	private Float qta;
+	private Boolean haveColors;
+	
 	
 	@OneToMany
 	@ElementCollection
@@ -70,39 +77,34 @@ public class Item
 	@ElementCollection
 	@Cascade(value={CascadeType.ALL})
 	@LazyCollection(LazyCollectionOption.FALSE)
-	private List<Price> prices = new ArrayList<Price>();
-	
-//	@ElementCollection
-//	@CollectionTable(name="prices")	
-//	@MapKeyColumn(name="pricing")	
-//	@Column(name="value")
-//	@Cascade(value={CascadeType.ALL})
-//	@LazyCollection(LazyCollectionOption.FALSE)
-//	private Map<String,Float> prices=new HashMap<String, Float>();
-			
+	private List<Price> prices = new ArrayList<Price>();	
 		
 	@JsonIgnore
 	@ManyToMany(fetch=FetchType.LAZY)	
-	@Cascade(value={CascadeType.ALL})
+	@Cascade(value={CascadeType.SAVE_UPDATE})
 	private Set<Category> categories = new HashSet<Category>();
 	
 	@JsonIgnore
-	@ManyToMany
-	@LazyCollection(LazyCollectionOption.FALSE)
-	private List<Catalogue> catalogues = new ArrayList<Catalogue>();
+	@ManyToMany(fetch=FetchType.LAZY)	
+	//@LazyCollection(LazyCollectionOption.TRUE)
+	@Cascade(value={CascadeType.SAVE_UPDATE})
+	private List<Catalogue> catalogues = new ArrayList<Catalogue>();	
 	
 	@JsonIgnore
 	@ManyToMany(fetch=FetchType.LAZY)	
+	@Cascade(value={CascadeType.ALL})
 	private List<Item> suggestItem = new ArrayList<Item>();
+	
+	@JsonIgnore
+	@ElementCollection
+	@Cascade(value={CascadeType.ALL})
+	@OneToMany(fetch=FetchType.LAZY)		
+	private List<Color> colors = new ArrayList<Color>();
 	
 	
 	@Column(columnDefinition="TEXT")
 	@JsonIgnore
 	private String extra;
-	
-	private Integer quantity;
-	
-	
 	
 	
 	public Item()
@@ -151,6 +153,8 @@ public class Item
 	public void addCategory(String name)
 		{
 		Category cat = Repositories.category.findOne(name);		
+		if(cat==null)
+			cat = Repositories.category.findByShopAndName(this.shop, name);
 		this.categories.add(cat);
 		}
 	
@@ -160,7 +164,7 @@ public class Item
 	public void setId(String id) {
 		this.id = id;
 		if(id==null) this.id=UUID.randomUUID().toString();		
-	}
+	}	
 	public String getShop() {
 		return shop;
 	}
@@ -182,9 +186,42 @@ public class Item
 	}
 	
 	private String getUserCurrency(){
-		return "EUR";
+		try	{return (String)AccessControl.getUser().getData().get("currency");}
+		catch(Exception e){return "EUR";}
+	}
+	public Float getQta() {
+		return qta;
+	}
+	public void setQta(Float qta) {
+		this.qta = qta;
 	}
 	
+	static private String[] currencyPriority ={"EUR","USD"};
+	@Transient
+	private String currency;
+	public String getCurrency()
+		{		
+		if(this.currency!=null) return currency;
+		
+		String currency =getUserCurrency();
+		if(currency!=null)
+			for(Price item :this.prices)
+				if(currency.equals(item.getCurrency()))
+					{
+					this.currency=currency;
+					return currency;
+					}
+		
+		for(String cr :Item.currencyPriority)
+			for(Price item :this.prices)
+				if(cr.equals(item.getCurrency()))
+					{
+					this.currency=cr;
+					return cr;
+					}
+
+		return currency;
+		}
 	private Price getPrice(String currency, String name) {
 		
 		for(Price item :this.prices)
@@ -197,7 +234,8 @@ public class Item
 		String price ="web";		
 		try{price=(String)AccessControl.getUser().getData().get("pricing");}catch(Exception e){} 
 		try{
-			return getPrice(getUserCurrency(),price).getValue();
+			if(price==null) price="web";
+			return getPrice(getCurrency(),price).getValue();
 			}
 		catch(NullPointerException e)
 			{
@@ -207,7 +245,7 @@ public class Item
 	public Double getBasePrice()
 		{
 		try	{
-			return getPrice(getUserCurrency(),"base").getValue();
+			return getPrice(getCurrency(),"base").getValue();
 			}
 		catch(NullPointerException e)
 			{
@@ -216,8 +254,11 @@ public class Item
 		}
 	
 	
-	public List<Price> getPrices() {		
-		//if(!AccessControl.canAccess("admin",null)) return null;
+	public List<Price> getPrices() {						
+		try{if(!(AccessControl.isAdmin(this.getShop()) ||
+			 AccessControl.canAccess("admin"))) return null;
+			}
+		catch(Exception e){return null;}
 		return prices;
 	}
 	public void setPrices(Price ... prices) {		
@@ -242,14 +283,10 @@ public class Item
 	@JsonSetter
 	public void setCategories(String ... categories) 
 		{		
-		for(String catName :categories)
-			{
-			Category cat = Repositories.category.findOne(catName);			
-			if(cat==null) cat = Repositories.category.findByShopAndName(getShop(), catName);
-			
-			this.categories.add(cat);
-			}
+		for(String catName :categories)			
+			addCategory(catName);			
 		}
+	
 	@JsonGetter	
 	public List<String> getCatalogues() {
 		List<String> result = new ArrayList<String>();
@@ -298,12 +335,6 @@ public class Item
 	public void setDescription(String description) {
 		this.description = description;
 	}
-	public Integer getQuantity() {
-		return quantity;
-	}
-	public void setQuantity(Integer quantity) {
-		this.quantity = quantity;
-	}
 	
 	public Date getCreationDate() {
 		return creationDate;
@@ -317,6 +348,21 @@ public class Item
 	public void setState(String state) {
 		this.state = state;
 	}
+	
+	@JsonGetter
+	public List<Color> getColors()
+		{
+		if(haveColors==null || !haveColors) return null;
+		return colors;
+		}
+	@JsonSetter
+	public void setColors(List<Color> colors)
+		{
+		haveColors= colors!=null && colors.size()>0;
+		
+		this.colors=colors;
+		}
+	
 	static private 	ObjectMapper mapper = new ObjectMapper();	
 	@JsonGetter
 	public Map getExtra()
@@ -350,20 +396,26 @@ public class Item
 		@ManyToOne		
 		@JoinColumn
 		private Pricing pricing;
+		private String currency;
 		
 		
 		
 		public Price() {		
 		}
-		public Price(String shop, String name, String currency,Double value) throws Exception{
-			id=UUID.randomUUID().toString();
-			pricing = Repositories.pricing.findByShopAndNameAndCurrency(shop,name,currency);
-			
+		
+		@JsonCreator	
+		public Price(
+				@JsonProperty("shop") 		String shop, 
+				@JsonProperty("name") 		String name, 
+				@JsonProperty("currency") 	String currency,
+				@JsonProperty("value") 	Double value) throws Exception{			
+			this.id=UUID.randomUUID().toString();
+			this.pricing = Repositories.pricing.findByShopAndNameAndCurrency(shop,name,currency);
 			this.value=value;			
 		}
 		public Price(String pricing, Double value){
 			id=UUID.randomUUID().toString();
-			this.pricing = Repositories.pricing.findOne(pricing);
+			this.pricing = Repositories.pricing.findOne(pricing);			
 			this.value=value;
 		}
 		public Price(Pricing pricing, Double value){
@@ -382,7 +434,7 @@ public class Item
 		public Pricing getPricing() {
 			return pricing;
 		}
-		public String getCurrency() {
+		public String getCurrency() {			
 			if(pricing==null) return null;
 			return pricing.getCurrency();
 		}
@@ -399,13 +451,12 @@ public class Item
 			this.value = value;
 		}
 		
+		/*
 		@JsonUnwrapped
 		public void setData(Data data)
 			{
-			
-			
 			this.pricing = Repositories.pricing.findByShopAndNameAndCurrency(data.getShop(), data.getName(), data.getCurrency());
-			}
+			}*/
 		
 		@PreUpdate
 		@PrePersist

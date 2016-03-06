@@ -12,7 +12,7 @@ public interface StaffRepository extends Repository<Staff, String>
 {
 	public List<Staff> findAll();
 	public Staff save(Staff wsdl);
-	public Staff findOne(String mail);	
+	public Staff findOne(String mail);		
 	public void delete(String entity);
 	public boolean exists(String entity);
 }

@@ -12,17 +12,24 @@ import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
+import org.index.service.IndexService.View;
+
+import com.fasterxml.jackson.annotation.JsonView;
 
 @Entity
 public class Page {
 	@Id
+	@JsonView(View.Shop.Full.class)
 	private String id;
+	@JsonView(View.Shop.Full.class)
 	private String title;
+	@JsonView(View.Shop.Full.class)
 	private String description;
 	@OneToMany
 	@ElementCollection
 	@Cascade(value={CascadeType.ALL})
-	@LazyCollection(LazyCollectionOption.FALSE)	
+	@LazyCollection(LazyCollectionOption.FALSE)
+	@JsonView(View.Shop.Full.class)
 	private List<Media> gallery=new ArrayList<Media>();	
 
 	public String getId() {

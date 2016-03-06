@@ -14,8 +14,11 @@ import javax.persistence.PrePersist;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
 import org.index.repository.Repositories;
+import org.index.service.IndexService.View;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonView;
 
 
 @Entity
@@ -23,8 +26,10 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 public class Category 
 	{
 	@Id
+	@JsonView(View.Shop.Full.class)
 	private String id;
-	private String name;	
+	@JsonView(View.Shop.Full.class)
+	private String name;		
 	private String shop;
 	
 	@ManyToMany(fetch=FetchType.LAZY)
@@ -37,6 +42,12 @@ public class Category
 		if(shop.getId()==null) shop.save();
 		this.shop=shop.getId();
 		this.name=name;
+		}
+	public Category(String id,String name,String shop)
+		{		
+		this.id=id;
+		this.name=name;		
+		this.shop=shop;
 		}
 	public Category(String name,String shop)
 		{		
@@ -52,6 +63,7 @@ public class Category
 	}
 	public String getName() 			{return name;}
 	public void setName(String name) 	{this.name = name;}
+	
 	public String getShop() {
 		return shop;
 	}
@@ -60,7 +72,7 @@ public class Category
 	}
 	public void remove()
 		{
-		Repositories.category.delete(this.name);
+		Repositories.category.delete(this.id);
 		}
 	@Override
 	public String toString() {		

@@ -2,13 +2,23 @@ package org.index.obj;
 
 import javax.persistence.Embeddable;
 
+import org.index.service.IndexService.View;
+
+import com.fasterxml.jackson.annotation.JsonView;
+
+
 @Embeddable
 public class Address {
-
+	
+	@JsonView(View.Shop.Full.class)
 	private String line1;
+	@JsonView(View.Shop.Full.class)
 	private String line2;
+	@JsonView(View.Shop.Full.class)
 	private String country;
+	@JsonView(View.Shop.Full.class)
 	private String city;
+	@JsonView(View.Shop.Full.class)
 	private String zip;
 	public String getLine1() {
 		return line1;

@@ -13,9 +13,11 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-@Component
+
 public class Index 
-	{	
+	{		
+	
+	
 	/*shop*/
 	public List<Shop> getShops()
 		{
@@ -23,7 +25,9 @@ public class Index
 		}
 	public Shop getShop(String id)
 		{
-		return Repositories.shop.findOne(id);
+		Shop shop= Repositories.shop.findOne(id);
+			
+		return shop;
 		}
 	public Shop addShop(Shop shop)
 		{
@@ -35,6 +39,10 @@ public class Index
 		}
 	
 	/*item*/
+	public void deleteItem(String id)
+		{
+		Repositories.item.delete(id);
+		}
 	public void addItem(Item item)
 		{
 		Repositories.item.save(item);

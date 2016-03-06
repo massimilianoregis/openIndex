@@ -34,10 +34,12 @@ public class IndexApplication extends SpringBootServletInitializer
 		return application.sources(IndexApplication.class);
 		}
 	
+	/*
 	@Bean
     public CacheManager cacheManager() {
         return new ConcurrentMapCacheManager("item");
     }
+    */
 	
     public static void main(String[] args) throws Exception{
     //	System.setProperty("spring.profiles.default", System.getProperty("spring.profiles.default", "dev"));
@@ -46,7 +48,7 @@ public class IndexApplication extends SpringBootServletInitializer
 //		item.addCategory("alimentari");
 //		item.setPrice("shop", 100F);
 //	System.out.println(new ObjectMapper().writeValueAsString(item));
-        Desktop.getDesktop().browse(new URI("http://localhost:8080/index.html"));
+     //   Desktop.getDesktop().browse(new URI("http://localhost:8080/index.html"));
        
     }
 }

@@ -3,6 +3,7 @@ package org.index.service;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import org.apache.commons.io.IOUtils;
 import org.index.Index;
@@ -16,7 +17,10 @@ import org.index.obj.Shop;
 import org.index.obj.Staff;
 import org.index.obj.Wear;
 import org.index.repository.Repositories;
+import org.opencommunity.security.AccessControl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -39,10 +43,22 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class IndexService 	
 {
 	@Autowired
-	private Index index;
-
+	private Index index;	
 	
-	/**Immagini dei prodotti**/
+	static class Prova
+		{
+		private String name;
+		public Prova(String name){this.name=name;}
+		public String getName() {
+			return name;
+		}
+		public void setName(String name) {
+			this.name = name;
+		}		
+		
+		}
+
+	/**Immagini dei prodotti**/	
 	@RequestMapping(value="/image/{name:.+}",method=RequestMethod.GET)
 	public ResponseEntity<byte[]> getImage(@PathVariable String name,@RequestParam(required=false) Integer w,@RequestParam(required=false) Integer h) throws Exception
 		{
@@ -99,10 +115,37 @@ public class IndexService
 		}
 	
 	/**Gruppi**/
+	@RequestMapping(value="/item/{item}/group/{name}",method=RequestMethod.GET)
+	public @ResponseBody Item addItemGroup(@PathVariable String item,@PathVariable String name) throws Exception
+		{
+		Item itm = index.getItem(item);
+			itm.addCategory(name);
+		return itm;
+		}
+	@RequestMapping(value="/shop/{shop}/groupReset",method=RequestMethod.GET)
+	public @ResponseBody Shop addGroup(@PathVariable String shop) throws Exception
+		{						
+		try{
+			while(true)
+				index.getShop(shop).getCategories().remove(0);
+			}
+		catch(Exception e)
+			{
+			return index.getShop(shop);	
+			}				
+		}
+	@RequestMapping(value="/shop/{shop}/group/{name}",method=RequestMethod.GET)
+	public @ResponseBody Shop addGroup(@PathVariable String shop,String to,@PathVariable String name) throws Exception
+		{						
+		index.getShop(shop).addCategory(new Category(name,shop));
+		return index.getShop(shop);
+		}
 	@RequestMapping(value={"/category","/category/{id}"},method=RequestMethod.POST)
-	public @ResponseBody void addCategory(@RequestBody Category group) throws Exception
+	public @ResponseBody Category addCategory(@RequestBody Category group) throws Exception
 		{		
+		if(group.getName().equals(group.getId())) group.setId(UUID.randomUUID().toString());
 		index.getShop(group.getShop()).addCategory(group);
+		return group;
 		}
 	@RequestMapping(value="/category",method=RequestMethod.GET)
 	public @ResponseBody List<Category> getCategories(@RequestParam(required=false) String shop) throws Exception
@@ -140,96 +183,56 @@ public class IndexService
 	
 	
 	/**Negozi**/
-	@RequestMapping(value="/shop/test",method=RequestMethod.GET)
-	public @ResponseBody Shop newShop() throws Exception
-		{						
-		Shop shop = new Shop("Star wars");					
-			//shop.setBackground("http://im.ziffdavisinternational.com/t/ign_it/screenshot/default/1429211669-star-wars-battlefront-key-art_hbw8.1920.jpg");			
-			shop.setCurrencies("USD","EUR");
-			shop.addCategories("Oggetti","Quadri");
-		shop.save();
-		
-			
-		{
-		System.out.println("primo prodotto");
-		Item item = shop.newItem();				
-			item.setName("Spada Laser");
-			//item.addImage("http://www.artsfon.com/pic/201501/1366x768/artsfon.com-45936.jpg");			
-			item.setCategories("Oggetti");						
-			item.setPrices(new Item.Price(shop.getId(),"base","EUR",100D),
-							new Item.Price(shop.getId(),"base","USD",100D),
-							new Item.Price(shop.getId(),"web","EUR",80D));
-			item.save();
-		
-		System.out.println("/primo prodotto");
-		}
-		
-		{
-		System.out.println("secondo prodotto");
-		Item item = shop.newItem();					
-			item.setName("Force Friday");
-			//item.addImage("http://pixel.nymag.com/imgs/daily/vulture/2015/09/04/force-fridays/bb8.nocrop.w529.h560.png");			
-			item.setCategories("Oggetti");	
-			item.setPrices(new Item.Price(shop.getId(),"base","EUR",100D),
-							new Item.Price(shop.getId(),"base","USD",100D),
-							new Item.Price(shop.getId(),"web","EUR",80D));
-			item.save();
-		
-		System.out.println("/secondo prodotto");
-		}
-		
-		{
-		System.out.println("terzo prodotto");
-		Item item = shop.newItem();				
-			item.setName("Toast");
-			item.setCategories("Oggetti");
-			//item.addImage("https://s-media-cache-ak0.pinimg.com/236x/ce/83/0b/ce830bb484e4809a8544a6760e7ae111.jpg");
-			item.setPrices(new Item.Price(shop.getId(),"base","EUR",100D),
-							new Item.Price(shop.getId(),"base","USD",100D),
-							new Item.Price(shop.getId(),"web","EUR",80D));
-		item.save();
-		System.out.println("/terzo prodotto");
-		}
-		
-		{
-		System.out.println("quarto prodotto");
-		Item item = shop.newItem();				
-			item.setName("Coffee");
-			item.setCategories("Oggetti");
-			//item.addImage("http://cnet1.cbsistatic.com/hub/i/r/2012/12/07/05a1a3d0-fdc7-11e2-8c7c-d4ae52e62bcc/resize/570xauto/a20b9cea9511045cbdedaa50e63009fd/Crave27.jpg");
-			item.setPrices(new Item.Price(shop.getId(),"base","EUR",100D),
-							new Item.Price(shop.getId(),"base","USD",100D),
-							new Item.Price(shop.getId(),"web","EUR",80D));
-			item.save();
-		System.out.println("/quarto prodotto");
-		}
-			
-		return shop;
-		}
+	
+	@Cacheable("shops")
+	@JsonView(View.Shop.Base.class)
 	@RequestMapping(value="/shop",method=RequestMethod.GET)
 	public @ResponseBody List<Shop> getShops() throws Exception
-		{				
+		{						
 		return index.getShops();
 		}
+	@JsonView(View.Shop.Full.class)
 	@RequestMapping(value="/shop/{shop}",method=RequestMethod.GET)
 	public @ResponseBody Shop getShops(@PathVariable String shop) throws Exception
 		{				
 		return index.getShop(shop);
 		}
-	@RequestMapping(value={"/shop","/shop/{id}"},method=RequestMethod.POST)
+	@CacheEvict(value = "shops", allEntries = true)
+	@RequestMapping(value={"/shop","/shop/{id}"},method=RequestMethod.POST)	
 	public @ResponseBody Shop addShop(@RequestBody(required=false) Shop shop,@RequestParam(required=false) String name) throws Exception
 		{
-		if(shop==null) shop=new Shop(name);
 		if(shop==null && name==null) return null;
-		return index.addShop(shop);
+		if(shop==null) 	shop=new Shop(name);
+		//else			shop = index.getShop(shop.getId());		
+		Shop sh =index.addShop(shop);
+		sh.addStaff("owner",AccessControl.getUser().getMail());
+		return sh;
 		}
+	@CacheEvict(value = "shops", allEntries = true)
 	@RequestMapping(value="/shop/{shop}",method=RequestMethod.DELETE)
 	public @ResponseBody void deleteShop(@PathVariable String shop) throws Exception
 		{				
 		index.deleteShop(shop);
 		}
 	
-	
+
+
+	@RequestMapping(value="/shop/{shop}/visible",method=RequestMethod.GET)
+	public @ResponseBody Shop visible(@PathVariable String shop) throws Exception
+		{				
+		Shop sh = index.getShop(shop);
+			 sh.setVisible(true);
+			 sh.save();
+		return sh;
+		}
+	@RequestMapping(value="/shop/{shop}/invisible",method=RequestMethod.GET)
+	public @ResponseBody Shop invisible(@PathVariable String shop) throws Exception
+		{				
+		Shop sh = index.getShop(shop);
+			 sh.setVisible(false);
+			 sh.save();
+		return sh;
+		}
 	@RequestMapping(value="/shop/{shop}/owner",method=RequestMethod.GET)
 	public @ResponseBody List<Staff> getOwner(@PathVariable String shop) throws Exception
 		{				
@@ -240,12 +243,39 @@ public class IndexService
 		{						
 		index.getShop(shop).addStaff("owner", mail);
 		}
+	@RequestMapping(value="/shop/{shop}/owner/remove",method=RequestMethod.GET)
+	public @ResponseBody void removeStaff(@PathVariable String shop,String mail) throws Exception
+		{						
+		index.getShop(shop).removeStaff("owner", mail);
+		}
+	@RequestMapping(value="/shop/{shop}/style",method=RequestMethod.GET)
+	public @ResponseBody Shop setStyle(@PathVariable String shop,@RequestParam String link) throws Exception
+		{						
+		Shop sh = index.getShop(shop);
+			 sh.setStyle(link);
+			 sh.save();
+		return sh;
+		}
+	
 	
 	@JsonView(View.Shop.Base.class)
 	@RequestMapping(value="/owner/{mail:.*}",method=RequestMethod.GET)	
 	public @ResponseBody List<Shop> getOwners(@PathVariable String mail) throws Exception
 		{						
 		return Repositories.shop.findByStaffMail(mail);		
+		}
+	@JsonView(View.Shop.Base.class)
+	@RequestMapping(value="/owner",method=RequestMethod.GET)	
+	public @ResponseBody List<Shop> getOwners2(String mail) throws Exception
+		{						
+		return Repositories.shop.findByStaffMail(mail);		
+		}
+	
+	/**Gestione chat**/
+	@RequestMapping(value="/shop/{shop}/send/{type}",method=RequestMethod.GET)
+	public @ResponseBody List<String> sendNotify(@PathVariable String shop,@PathVariable String type,String from, String message) throws Exception
+		{						
+		return index.getShop(shop).sendNotify(from,message,type);
 		}
 	@RequestMapping(value="/shop/{shop}/send",method=RequestMethod.GET)
 	public @ResponseBody void send(@PathVariable String shop,String from, String message) throws Exception
@@ -260,9 +290,16 @@ public class IndexService
 	
 	
 	
+	
 	/**Prodotti**/
 	@RequestMapping(value="/item",method=RequestMethod.GET)
 	public @ResponseBody List<Item> getItems(@RequestParam(required=false) String shop) throws Exception
+		{		
+		if(shop==null)	return index.getItems();
+		return index.getShop(shop).getItems();
+		}
+	@RequestMapping(value="/shop/{shop}/items",method=RequestMethod.GET)
+	public @ResponseBody List<Item> getItemsShop(@PathVariable String shop) throws Exception
 		{		
 		if(shop==null)	return index.getItems();
 		return index.getShop(shop).getItems();
@@ -286,16 +323,22 @@ public class IndexService
 		return index.getItem(id);
 		}
 	
-	@RequestMapping(value="/{shop}/items/{id}",method=RequestMethod.GET)
+	@RequestMapping(value={"/{shop}/items/{id}","/shop/{shop}/items/{id}"},method=RequestMethod.GET)
 	public @ResponseBody List<Item> getItemGroup(@PathVariable String shop,@PathVariable String id) throws Exception
 		{							
 		System.out.println(shop+" "+id);
 		return index.getItemGroup(shop,shop+"."+id);
 		}
 	@RequestMapping(value={"/item","/item/{id}"},method=RequestMethod.POST)
-	public @ResponseBody void addItem(@RequestBody Item item) throws Exception
+	public @ResponseBody Item addItem(@RequestBody Item item) throws Exception
 		{			
-		index.addItem(item);		
+		index.addItem(item);
+		return item;
+		}
+	@RequestMapping(value={"/item/{id:.*}"},method=RequestMethod.DELETE)
+	public @ResponseBody void deleteItem(@PathVariable String id) throws Exception
+		{			
+		index.deleteItem(id);
 		}
 	@RequestMapping(value="/wear",method=RequestMethod.POST)
 	public @ResponseBody void addWear(@RequestBody Wear item) throws Exception
@@ -315,6 +358,7 @@ public class IndexService
 		public static class Shop
 			{
 			public static class Base	{}
+			public static class Full extends Base {}	
 			} 
 		
 		}

@@ -16,6 +16,7 @@ import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+import javax.persistence.Transient;
 
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
@@ -26,48 +27,53 @@ import org.index.categories.GoodClass;
 import org.index.news.News;
 import org.index.repository.Repositories;
 import org.index.service.IndexService.View;
+import org.index.util.RequestSendMail;
 import org.opencommunity.client.OpenCommunity;
 import org.opencommunity.objs.User;
 import org.opencommunity.security.AccessControl;
 import org.opencommunity.util.AutomaticPassword;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonView;
 
 @Entity
 @JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(Include.NON_NULL)
 public class Shop {
 	
 	@Id
-	@JsonView(View.Shop.Base.class)
-	private String id;	
-	@JsonView(View.Shop.Base.class)
-	private String name;
-	@JsonView(View.Shop.Base.class)
-	private String background;
-	@JsonView(View.Shop.Base.class)
-	private String logo;
-	@JsonView(View.Shop.Base.class)
-	private String description;
-	@JsonView(View.Shop.Base.class)
-	private String style;
+	@JsonView(View.Shop.Base.class)	private String id;	
+	@JsonView(View.Shop.Base.class)	private String name;
+	@JsonView(View.Shop.Base.class)	private String background;
+	@JsonView(View.Shop.Base.class)	private String logo;
+	@JsonView(View.Shop.Base.class)	private String description;
+	@JsonView(View.Shop.Full.class)	private String style;
 	
-	private String tel;	
-	private String email;
-	private String website;
-	private String facebook;
-	private String twitter;
-	private String linkedin;
+	@JsonView(View.Shop.Full.class)	private String tel;
+	@JsonView(View.Shop.Full.class)	private String email;
+	@JsonView(View.Shop.Full.class)	private String website;
+	@JsonView(View.Shop.Full.class)	private String facebook;
+	@JsonView(View.Shop.Full.class)	private String twitter;
+	@JsonView(View.Shop.Full.class)	private String linkedin;
+	@JsonView(View.Shop.Base.class)	private Boolean visible;
 	
 	//friendlycode
-	private String code;
+	@JsonView(View.Shop.Base.class)	private String code;
 	
 	@Embedded
-	private Address address;
+	@JsonView(View.Shop.Full.class)	private Address address;
 	
 	@Embedded
-	private Gps gps;
+	@JsonView(View.Shop.Full.class)	private Paypal paypal;
+	
+	@Embedded
+	@JsonView(View.Shop.Full.class)	private Gps gps;
+	
+	//private List<String> goodType;
 	
 	@OneToOne
 	@Cascade(value={CascadeType.ALL})
@@ -76,25 +82,37 @@ public class Shop {
 	@OneToMany
 	@ElementCollection
 	@Cascade(value={CascadeType.ALL})
-	@LazyCollection(LazyCollectionOption.FALSE)		
-	private List<Media> gallery=new ArrayList<Media>();	
+	@LazyCollection(LazyCollectionOption.FALSE)
+	@JsonView(View.Shop.Full.class)	private List<Media> gallery=new ArrayList<Media>();	
 	
 	@OneToMany
 	@ElementCollection
 	@Cascade(value={CascadeType.ALL})
-	@LazyCollection(LazyCollectionOption.FALSE)		
+	@LazyCollection(LazyCollectionOption.FALSE)
+	@JsonView(View.Shop.Full.class)
 	private List<Pricing> pricings = new ArrayList<Pricing>();
+	
+	/*
+	@OneToMany
+	@ElementCollection
+	@Cascade(value={CascadeType.ALL})
+	@LazyCollection(LazyCollectionOption.FALSE)
+	@JsonView(View.Shop.Full.class)
+	private List<Currency> currencies = new ArrayList<Currency>();
+	*/
 	
 	@OneToMany
 	@ElementCollection
 	@Cascade(value={CascadeType.ALL})
 	@LazyCollection(LazyCollectionOption.FALSE)	
+	@JsonView(View.Shop.Full.class)
 	private List<Shipping> shipping=new ArrayList<Shipping>();	
 	
 	@OneToMany
 	@ElementCollection
 	@Cascade(value={CascadeType.ALL})
 	@LazyCollection(LazyCollectionOption.FALSE)	
+	@JsonView(View.Shop.Full.class)
 	private List<Category> categories = new ArrayList<Category>();
 	
 	@OneToMany
@@ -105,14 +123,17 @@ public class Shop {
 		
 	@ManyToMany(fetch=FetchType.LAZY)	
 	@Cascade(value={CascadeType.ALL})
+	@JsonView(View.Shop.Full.class)
 	private List<GoodClass> goodClasses = new ArrayList<GoodClass>();
 	
 	@OneToOne	
-	@Cascade(value={CascadeType.ALL})		
+	@Cascade(value={CascadeType.ALL})
+	@JsonView(View.Shop.Full.class)
 	private Page whoAreWe;
 	
 	@ManyToMany(fetch=FetchType.LAZY)
-	@Cascade(value={CascadeType.ALL})	
+	@Cascade(value={CascadeType.ALL})
+	@JsonView(View.Shop.Full.class)
 	private List<Staff> staff = new ArrayList<Staff>();
 		
 	
@@ -200,6 +221,8 @@ public class Shop {
 	public String getWebsite() {
 		return website;
 	}
+	@JsonGetter
+	@JsonView(View.Shop.Full.class)
 	public String[] getCurrencies(){
 		Set<String> set = new HashSet<String>();
 		for(Pricing pr:this.pricings)
@@ -232,6 +255,8 @@ public class Shop {
 	}
 	public void setCategories(List<Category> categories) {
 		this.categories = categories;
+		for(Category c:categories )
+			c.setShop(this.id);
 	}
 	
 	
@@ -243,6 +268,9 @@ public class Shop {
 	}
 	public void setId(String id) {
 		this.id = id;
+		
+		if(this.pricings!=null) for(Pricing item: this.pricings) item.setShop(id);
+		if(this.whoAreWe!=null) this.whoAreWe.setId(id);
 	}
 	public void setBackground(String background) throws Exception	{
 		this.background = Util.getInstance().saveImage(background);
@@ -344,18 +372,59 @@ public class Shop {
 	public void setAddress(Address address) {
 		this.address = address;
 	}
+	public Boolean getVisible() {
+		return visible;
+	}
+	public void setVisible(Boolean visible) {
+		this.visible = visible;
+	}
+	public Paypal getPaypal() {
+		return paypal;
+	}
+	public void setPaypal(Paypal paypal) {
+		this.paypal = paypal;
+	}
 	
 	/*STAFF*/
-	public void addStaff(String role, String mail)	{		
-		Staff staff = Repositories.staff.findOne(mail);		
-		if(staff==null)		staff = new Staff(mail,role);
-		this.staff.add(staff);
+	public void addStaff(String role, String mail)	{	
+		if(mail==null) return;
+		for(Staff item:this.staff)
+			if(mail.equals(item.getMail()))
+				return;
+				
+		this.staff.add(new Staff(mail,role));
+	}
+	public void removeStaff(String role, String mail)	{			
+		for(Staff item:this.staff)
+			if((item.getMail()==null && mail==null) || mail.equals(item.getMail()))
+				{
+				this.staff.remove(item);
+				return;
+				}
+				
 	}
 	public List<Staff> getStaff() {
 		return staff;
 	}
 	public void setStaff(List<Staff> staff) {
 		this.staff = staff;
+	}
+	/**gestione messaggistica**/
+	public List<String> sendNotify(String from, String message,String type)	{
+		List<String> users = new ArrayList<String>();
+		for(Staff user:this.staff)
+			users.add(user.getMail());
+		
+		HashMap map = new HashMap();
+			map.put("from", from);
+			map.put("to", this.id);
+			map.put("type", type);
+			map.put("target", "shop");
+		
+		
+		try{OpenCommunity.getInstance().send("chat",message,map,users);}catch(Exception e){}		
+		
+		return users;
 	}
 	public void send(String from, String message)	{
 		List<String> users = new ArrayList<String>();
@@ -401,6 +470,7 @@ public class Shop {
 		{
 		
 		}
+		
 	
 	public void save(Category cat){
 		Repositories.category.save(cat);
@@ -414,5 +484,11 @@ public class Shop {
 		Repositories.shop.save(this);		
 	}
 	
+	static public class Mail
+		{
+		public String from;
+		public String subject;
+		public String template;
+		}
 	
 	}

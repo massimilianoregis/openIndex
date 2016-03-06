@@ -5,12 +5,20 @@ import java.util.UUID;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 
+import org.index.service.IndexService.View;
+
+import com.fasterxml.jackson.annotation.JsonView;
+
 @Entity
 public class Shipping {
 	@Id
+	@JsonView(View.Shop.Full.class)
 	private String id;
+	@JsonView(View.Shop.Full.class)
 	private String country;
+	@JsonView(View.Shop.Full.class)
 	private String currency;
+	@JsonView(View.Shop.Full.class)
 	private Double price;
 	
 	public Shipping(){

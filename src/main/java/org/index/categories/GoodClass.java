@@ -7,17 +7,24 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 
 import org.index.repository.Repositories;
+import org.index.service.IndexService.View;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonView;
 
 @Entity
 @JsonIgnoreProperties(ignoreUnknown=true)
 public class GoodClass {
 	@Id
+	@JsonView(View.Shop.Full.class)
 	private String id;
+	@JsonView(View.Shop.Full.class)
 	private String code;
+	@JsonView(View.Shop.Full.class)
 	private String IT;
+	@JsonView(View.Shop.Full.class)
 	private String EN;
+	@JsonView(View.Shop.Full.class)
 	private String parentId;
 	
 	public GoodClass() {

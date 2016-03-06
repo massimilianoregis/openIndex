@@ -12,9 +12,11 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
 import org.index.Util;
+import org.index.service.IndexService.View;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonView;
 import com.sun.mail.util.BASE64DecoderStream;
 
 @Entity
@@ -24,9 +26,13 @@ public class Media
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	@JsonIgnore
+	@JsonView(View.Shop.Full.class)
 	private Long uid;
 	@Column(columnDefinition="TEXT")
+	@JsonView(View.Shop.Full.class)
 	private String img;
+	@JsonView(View.Shop.Full.class)
+	private String type;
 	
 	public Media() {
 	
@@ -46,15 +52,19 @@ public class Media
 	public String getImg() {
 		return img;
 	}
+	public String getType()
+		{
+		return type;
+		}
 	public void setSrc(String img) throws Exception 
-		{			
-		System.out.println(img);
+		{					
 		this.img = Util.getInstance().saveImage(img);
+		this.type="image";
 		}
 	public void setImg(String img) throws Exception 
 		{
-		System.out.println(img);
-		this.img = Util.getInstance().saveImage(img);		
+		this.img = Util.getInstance().saveImage(img);
+		this.type="image";
 		}
 	
 	}

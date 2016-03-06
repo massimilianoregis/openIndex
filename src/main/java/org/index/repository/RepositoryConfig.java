@@ -52,9 +52,14 @@ public class RepositoryConfig {
          propertySourcesPlaceholderConfigurer.setIgnoreUnresolvablePlaceholders(Boolean.TRUE);
          try{
          if(InetAddress.getLocalHost().getHostAddress().equals("95.110.228.140"))
+         	{
+        	 System.out.println("REMOTE!!");
         	 propertySourcesPlaceholderConfigurer.setLocations(new PathMatchingResourcePatternResolver().getResources("classpath*:online/*.properties"));
-         else
+         	}
+         else{
+        	 System.out.println("LOCAL!!");
         	 propertySourcesPlaceholderConfigurer.setLocations(new PathMatchingResourcePatternResolver().getResources("classpath*:local/*.properties"));
+         }
          }catch(Exception e)
          {
         	 propertySourcesPlaceholderConfigurer.setLocations(new PathMatchingResourcePatternResolver().getResources("classpath*:online/*.properties"));

@@ -8,22 +8,30 @@ import javax.persistence.Id;
 import javax.persistence.PrePersist;
 
 import org.index.repository.Repositories;
+import org.index.service.IndexService.View;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonView;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 @Entity
+@JsonInclude(Include.NON_NULL)
 public class Pricing 
 	{
 	@Id
+	@JsonView(View.Shop.Full.class)
 	private String id;
+	@JsonView(View.Shop.Full.class)	
 	private String name;	
-	private String description;
-	//@JsonIgnore
+	@JsonView(View.Shop.Full.class)
+	private String description;	
 	private String shop;
-	
+		
 	private String code;
 	private String pass;	
-		
+	
+	@JsonView(View.Shop.Full.class)
 	private String currency;
 
 	public Pricing(){
@@ -68,6 +76,7 @@ public class Pricing
 	public void setPass(String pass) {
 		this.pass = pass;
 	}
+	
 	public String getShop() {
 		return shop;
 	}

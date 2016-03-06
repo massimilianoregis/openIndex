@@ -1,5 +1,9 @@
 package org.index;
 
+import static org.imgscalr.Scalr.OP_ANTIALIAS;
+import static org.imgscalr.Scalr.crop;
+import static org.imgscalr.Scalr.resize;
+
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -13,9 +17,9 @@ import javax.annotation.PostConstruct;
 import javax.imageio.ImageIO;
 
 import org.apache.commons.io.IOUtils;
-import static org.imgscalr.Scalr.*;
+import org.imgscalr.Scalr.Method;
+import org.imgscalr.Scalr.Mode;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 
 import com.sun.mail.util.BASE64DecoderStream;
@@ -25,8 +29,6 @@ import com.sun.mail.util.BASE64DecoderStream;
 public class Util {
 	@Value("${index.img.root}") private String root;
 	@Value("${index.img.url}") private String url;
-	
-	
 	static private Util instance;
 	static public Util getInstance()
 		{
@@ -61,21 +63,35 @@ public class Util {
 		
 		File rootImage = new File(root);
 		String imgtype="jpg";
-		String newImage = img+(w!=null?w:"_")+"X"+(h!=null?h:"_");
+		try{imgtype=img.substring(img.lastIndexOf('.')+1);}catch(Exception e){}
+		try{img = img.substring(0,img.lastIndexOf('.'));}catch(Exception e){}
+		String newImage = img+"-"+(w!=null?w:"_")+"X"+(h!=null?h:"_");
 		File imgOutFile = new File(rootImage,newImage+"."+imgtype);
 		if(imgOutFile.exists()) return new FileInputStream(imgOutFile);
 			
-		BufferedImage image = ImageIO.read(new File(root,img));
+		BufferedImage image = ImageIO.read(new File(root,img+"."+imgtype));	
 		Integer nh = image.getHeight();
-		Integer nw = image.getWidth();		
+		Integer nw = image.getWidth();
+		float ratio = nw/(float)nh;	
 		
-		if( ((h!=null && nh==h)||h==null) && ((w!=null && nw==w)||w==null))
+		if("png".equals(imgtype))
+			{		
+			BufferedImage imageRGB = new BufferedImage(nw,nh, BufferedImage.TYPE_INT_RGB);
+				imageRGB.createGraphics().drawImage(image,null,null);
+			image=imageRGB;
+			imgtype="jpg";
+			}
+
+		
+		if(((h!=null && nh==h)||h==null) && ((w!=null && nw==w)||w==null))
 			{
 			ImageIO.write(image, imgtype, imgOutFile);
 			return new FileInputStream(imgOutFile);
-			}
-		float ratio = nw/(float)nh;		
-		Mode mode = Mode.FIT_TO_WIDTH;		
+			}		
+		Mode mode = Mode.FIT_TO_WIDTH;				
+		
+		if(h==null && w!=null) h= (int)(w/ratio);
+		if(h!=null && w==null) w= (int)(h*ratio);
 		
 		Integer w1 = w;
 		Integer h1 = (int)(w/ratio);
@@ -86,9 +102,9 @@ public class Util {
 		if(w1>=w && h1>=h) mode= Mode.FIT_TO_WIDTH;
 		if(w2>=w && h2>=h) mode= Mode.FIT_TO_HEIGHT;	
 		
-		BufferedImage resize = resize(image,  Method.BALANCED, mode,w!=null?w:0,h!=null?h:0,OP_ANTIALIAS);		
+		BufferedImage resize = resize(image,  Method.QUALITY, mode,w!=null?w:0,h!=null?h:0,OP_ANTIALIAS);		
 		if(w!=null && h!=null)  resize= crop(resize,(resize.getWidth()-w)/2,(resize.getHeight()-h)/2,w,h);
-		
+
 		ImageIO.write(resize, imgtype, imgOutFile);	
 		return new FileInputStream(imgOutFile);
 		}
@@ -112,6 +128,7 @@ public class Util {
 		    		    
 		    return url+imgOutFile.getName();
 			}
+		
 		if(!img.matches(url))
 			try{					
 				System.out.println("download:"+img);			

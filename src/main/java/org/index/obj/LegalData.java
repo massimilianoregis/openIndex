@@ -5,15 +5,25 @@ import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 
+import org.index.service.IndexService.View;
+
+import com.fasterxml.jackson.annotation.JsonView;
+
 @Entity
 public class LegalData {
 	@Id
+	@JsonView(View.Shop.Full.class)
 	private String id;
+	@JsonView(View.Shop.Full.class)
 	private String name;
 	@Embedded
+	@JsonView(View.Shop.Full.class)
 	private Address address;
+	@JsonView(View.Shop.Full.class)
 	private String piva;
+	@JsonView(View.Shop.Full.class)
 	private String rea;
+	@JsonView(View.Shop.Full.class)
 	private String capitale;
 	
 	public String getId() {

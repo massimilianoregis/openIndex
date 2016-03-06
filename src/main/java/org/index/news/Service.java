@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 @Transactional("indexTransactionManager")
-@RequestMapping("/index/{shop}/news")
+@RequestMapping({"/index/{shop}/news","/index/shop/{shop}/news"})
 public class Service {
 	@Autowired
 	private Index index;

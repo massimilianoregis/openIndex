@@ -1,5 +1,9 @@
 package org.opencommunity.util;
 
+import static org.imgscalr.Scalr.OP_ANTIALIAS;
+import static org.imgscalr.Scalr.crop;
+import static org.imgscalr.Scalr.resize;
+
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -13,7 +17,8 @@ import javax.annotation.PostConstruct;
 import javax.imageio.ImageIO;
 
 import org.apache.commons.io.IOUtils;
-import static org.imgscalr.Scalr.*;
+import org.imgscalr.Scalr.Method;
+import org.imgscalr.Scalr.Mode;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
@@ -61,21 +66,34 @@ public class Util {
 		
 		File rootImage = new File(root);
 		String imgtype="jpg";
-		String newImage = img+(w!=null?w:"_")+"X"+(h!=null?h:"_");
+		try{imgtype=img.substring(img.lastIndexOf('.')+1);}catch(Exception e){}
+		try{img = img.substring(0,img.lastIndexOf('.'));}catch(Exception e){}
+		String newImage = img+"-"+(w!=null?w:"_")+"X"+(h!=null?h:"_");
 		File imgOutFile = new File(rootImage,newImage+"."+imgtype);
 		if(imgOutFile.exists()) return new FileInputStream(imgOutFile);
 			
-		BufferedImage image = ImageIO.read(new File(root,img));
+		BufferedImage image = ImageIO.read(new File(root,img+"."+imgtype));		
 		Integer nh = image.getHeight();
-		Integer nw = image.getWidth();		
+		Integer nw = image.getWidth();	
+		float ratio = nw/(float)nh;	
 		
-		if( ((h!=null && nh==h)||h==null) && ((w!=null && nw==w)||w==null))
+		if("png".equals(imgtype))
+			{		
+			BufferedImage imageRGB = new BufferedImage(nw,nh, BufferedImage.TYPE_INT_RGB);
+				imageRGB.createGraphics().drawImage(image,null,null);
+			image=imageRGB;
+			imgtype="jpg";
+			}
+		
+		if(((h!=null && nh==h)||h==null) && ((w!=null && nw==w)||w==null))
 			{
 			ImageIO.write(image, imgtype, imgOutFile);
 			return new FileInputStream(imgOutFile);
-			}
-		float ratio = nw/(float)nh;		
+			}		
 		Mode mode = Mode.FIT_TO_WIDTH;		
+		
+		if(h==null && w!=null) h= (int)(w/ratio);
+		if(h!=null && w==null) w= (int)(h*ratio);
 		
 		Integer w1 = w;
 		Integer h1 = (int)(w/ratio);
@@ -144,9 +162,8 @@ public class Util {
 	
 	public static void main(String[] args)throws Exception {
 		Util util = new Util("/Users/max/Downloads","http://");
-		//String path = util.saveImage("/Users/max/Downloads/14010_Druckbogen_Muppets_RocknRoll_m.jpg",null);
-		//System.out.println(path);
-		System.out.println(util.saveImage("http://graph.facebook.com/517267866/picture?type=large"));
+		InputStream in = util.getImage("e250f807-3190-4e08-9a3d-152d0d0c4c8d.png",1080,750);
+		IOUtils.copy(in, new FileOutputStream("/Users/max/Downloads/test2.jpg"));
 		
 	}
 }

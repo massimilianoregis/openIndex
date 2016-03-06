@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.index.util.RequestSendMail;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.web.client.RestTemplate;
@@ -15,12 +16,18 @@ public class OpenCommunity {
 
 	private String url;
 	private String messages;
-	public OpenCommunity(String url,String messages){
+	private String mail;
+	public OpenCommunity(String url,String messages,String mail){
 		OpenCommunity.instance=this;
-		this.url=url;
-		this.messages=messages;
+		this.url		=url;
+		this.messages	=messages;
+		this.mail		=mail;
 	}
 	
+	public void sendMail(String from,String to, String subject, String template, Map data)	{
+		RequestSendMail sendMail = new RequestSendMail(from, to, subject, template, data);
+		new RestTemplate().getForObject(mail,String.class,sendMail);
+	}
 	public void addMessage(String from, String to,String message)	{
 		Map map = new HashMap();
 		map.put("from", from);
@@ -37,9 +44,8 @@ public class OpenCommunity {
 			map.put("title", title);
 			map.put("text", message);
 			map.put("payload", payload);
-			map.put("mail", users);			
-				
-		new RestTemplate().postForObject(url,map,String.class);
+			map.put("mail", users);							
+		System.out.println(new RestTemplate().postForObject(url,map,String.class));
 	}
 	
 	public static void main(String[] args) throws Exception{
@@ -49,17 +55,27 @@ public class OpenCommunity {
 		String messages="http://95.110.228.140:8080/openCommunity/message/add/?from={from}&message={message}&to={to}";
 		new OpenCommunity(url,messages).addMessage("michipaperino@gmail.com","5505e0d5-b23e-4b10-8550-f6445b75ca75","ciao");;*/
 		
-		Map payload = new HashMap();
-			payload.put("type", "shop");
+		HashMap map = new HashMap();
+		map.put("from", "coao");
+		map.put("to", "a");
+		map.put("type", "dfs");
+		map.put("target", "shop");
+		new OpenCommunity("http://95.110.228.140:8080/openCommunity/community/notify/send", "","")
+			.send("titolo", "messaggio",map , "michela.manesco@ekaros.it");
+		
+		
+		/*
 		Map map = new HashMap();
 		map.put("title", "title");
 		map.put("text", "message");		
 		map.put("payload", payload);
 		map.put("mail", new String[]{"massimiliano.regis@gmail.com"});
 		
-			
+		System.out.println(map);	
 		
 		String url ="http://95.110.228.140:8080/openCommunity/community/notify/send";		
 		System.out.println(new RestTemplate().postForObject(url,map,String.class));
+		*/
+		
 	}
 }

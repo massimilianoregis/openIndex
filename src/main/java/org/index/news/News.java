@@ -7,14 +7,22 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 
 import org.index.Util;
+import org.index.service.IndexService.View;
+
+import com.fasterxml.jackson.annotation.JsonView;
 
 @Entity
 public class News {
 @Id	
+@JsonView(View.Shop.Full.class)
 private String id;
+@JsonView(View.Shop.Full.class)
 private String title;
+@JsonView(View.Shop.Full.class)
 private String text;
+@JsonView(View.Shop.Full.class)
 private String image;
+@JsonView(View.Shop.Full.class)
 private Date creationDate;
 
 public News(){
