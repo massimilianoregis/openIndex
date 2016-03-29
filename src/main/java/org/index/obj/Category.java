@@ -72,7 +72,7 @@ public class Category
 	}
 	public void remove()
 		{
-		Repositories.category.delete(this.id);
+		Repositories.category.delete(this);
 		}
 	@Override
 	public String toString() {		

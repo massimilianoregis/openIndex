@@ -17,6 +17,8 @@ public interface ShopRepository extends Repository<Shop, String>
 	
 	public Shop save(Shop shop);
 	public Shop findOne(String id);
+	public Shop findByCategoriesId(String id);
+	public Shop findByCategoriesName(String name);
 	public List<Shop> findByStaffMail(String mail);
 	
 	public void delete(Shop entity);

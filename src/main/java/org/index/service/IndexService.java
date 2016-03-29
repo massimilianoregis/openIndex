@@ -136,9 +136,20 @@ public class IndexService
 		}
 	@RequestMapping(value="/shop/{shop}/group/{name}",method=RequestMethod.GET)
 	public @ResponseBody Shop addGroup(@PathVariable String shop,String to,@PathVariable String name) throws Exception
-		{						
-		index.getShop(shop).addCategory(new Category(name,shop));
-		return index.getShop(shop);
+		{				
+		Shop sh = index.getShop(shop);
+		sh.addCategory(new Category(name,shop));
+		sh.save();
+		return sh;
+		}
+	@RequestMapping(value="/shop/{shop}/group/{name}/delete",method=RequestMethod.GET)
+	public @ResponseBody Shop delGroup(@PathVariable String shop,String to,@PathVariable String name) throws Exception
+		{		
+		Shop sh = index.getShop(shop);
+		sh.delCategory(name).remove();
+		sh.save();
+				
+		return sh;
 		}
 	@RequestMapping(value={"/category","/category/{id}"},method=RequestMethod.POST)
 	public @ResponseBody Category addCategory(@RequestBody Category group) throws Exception
@@ -160,8 +171,10 @@ public class IndexService
 		}
 	@RequestMapping(value="/category/{name}",method=RequestMethod.DELETE)
 	public @ResponseBody void deleteCategories(@PathVariable String name) throws Exception
-		{		
-		index.getCategory(name).remove();
+		{				
+		Shop sh = index.getShopByCategory(name);
+		sh.delCategory(name).remove();
+		sh.save();
 		}
 	/**GoodClasses**/
 	@RequestMapping(value="/class",method=RequestMethod.GET)
@@ -216,7 +229,7 @@ public class IndexService
 		}
 	
 
-
+	@CacheEvict(value = "shops", allEntries = true)
 	@RequestMapping(value="/shop/{shop}/visible",method=RequestMethod.GET)
 	public @ResponseBody Shop visible(@PathVariable String shop) throws Exception
 		{				
@@ -225,11 +238,29 @@ public class IndexService
 			 sh.save();
 		return sh;
 		}
+	
+	@CacheEvict(value = "shops", allEntries = true)
 	@RequestMapping(value="/shop/{shop}/invisible",method=RequestMethod.GET)
 	public @ResponseBody Shop invisible(@PathVariable String shop) throws Exception
 		{				
 		Shop sh = index.getShop(shop);
 			 sh.setVisible(false);
+			 sh.save();
+		return sh;
+		}
+	@RequestMapping(value="/shop/{shop}/good/{name}/add",method=RequestMethod.GET)
+	public @ResponseBody Shop addGoodType(@PathVariable String shop,@PathVariable String name) throws Exception
+		{				
+		Shop sh = index.getShop(shop);
+			 sh.addGoodType(name);
+			 sh.save();
+		return sh;
+		}
+	@RequestMapping(value="/shop/{shop}/good/{name}/remove",method=RequestMethod.GET)
+	public @ResponseBody Shop removeGoodType(@PathVariable String shop,@PathVariable String name) throws Exception
+		{				
+		Shop sh = index.getShop(shop);
+			 sh.getGoodTypes().remove(name);
 			 sh.save();
 		return sh;
 		}

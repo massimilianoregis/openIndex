@@ -77,6 +77,7 @@ public class Shop {
 	
 	@OneToOne
 	@Cascade(value={CascadeType.ALL})
+	@JsonView(View.Shop.Full.class)	
 	private LegalData legalData;
 	
 	@OneToMany
@@ -136,6 +137,8 @@ public class Shop {
 	@JsonView(View.Shop.Full.class)
 	private List<Staff> staff = new ArrayList<Staff>();
 		
+	@ElementCollection(fetch=FetchType.LAZY)
+	@JsonView(View.Shop.Full.class) private List<String> goodTypes = new ArrayList<String>();
 	
 	
 	public Shop()
@@ -305,7 +308,15 @@ public class Shop {
 		if(id==null) save();
 		this.pricings.add(new Pricing(id, name, currency));		
 	}
-	
+	public Category delCategory(String name){
+		for(Category item:this.categories)
+			if(item.getId().equals(name) || item.getName().equals(name))
+				{				
+				this.categories.remove(item);
+				return item;
+				}
+		return null;
+	}
 	public void addCategory(Category cat){
 		for(Category item:this.categories)
 			if(item.getId().equals(cat.getId()))
@@ -408,6 +419,18 @@ public class Shop {
 	}
 	public void setStaff(List<Staff> staff) {
 		this.staff = staff;
+	}
+	public List<String> getGoodTypes() {
+		if(goodTypes.size()==0)
+			return Arrays.asList(new String[]{"generic"});
+			
+		return goodTypes;
+	}
+	public void addGoodType(String goodType) {
+		this.goodTypes.add(goodType);
+	}
+	public void setGoodTypes(List<String> goodTypes) {
+		this.goodTypes = goodTypes;
 	}
 	/**gestione messaggistica**/
 	public List<String> sendNotify(String from, String message,String type)	{

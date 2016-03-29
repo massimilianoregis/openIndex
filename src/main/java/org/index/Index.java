@@ -23,6 +23,13 @@ public class Index
 		{
 		return Repositories.shop.findAll();
 		}
+	public Shop getShopByCategory(String id)
+		{
+		Shop shop= Repositories.shop.findByCategoriesId(id);
+		if(shop==null) Repositories.shop.findByCategoriesName(id);
+			
+		return shop;
+		}
 	public Shop getShop(String id)
 		{
 		Shop shop= Repositories.shop.findOne(id);
@@ -103,6 +110,7 @@ public class Index
 		{
 		return Repositories.category.findOne(name);
 		}
+	
 	
 	
 	public Catalogue addCatalogue(String name)
